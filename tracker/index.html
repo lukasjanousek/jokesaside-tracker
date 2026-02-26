@@ -425,6 +425,7 @@ function App() {
   const [timerElapsed, setTimerElapsed] = useState(0);
   const [billingLocks, setBillingLocks] = useState([]);
   const [discountSchemes, setDiscountSchemes] = useState([]);
+  const [retainers, setRetainers] = useState([]);
   const [recurringMeetings, setRecurringMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -464,7 +465,7 @@ function App() {
     if (!supabase) return;
     try {
       setLoading(true);
-      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes] = await Promise.all([
+      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*').eq('is_active', true),
         supabase.from('time_entries').select('*'),
@@ -473,6 +474,7 @@ function App() {
         supabase.from('discount_tiers').select('*'),
         supabase.from('recurring_meetings').select('*').eq('is_active', true),
         supabase.from('billing_locks').select('*'),
+        supabase.from('retainers').select('*'),
       ]);
 
       if (companiesRes.data) setCompanies(companiesRes.data);
@@ -489,6 +491,7 @@ function App() {
       }
       if (meetingsRes.data) setRecurringMeetings(meetingsRes.data);
       if (locksRes.data) setBillingLocks(locksRes.data);
+      if (retainersRes.data) setRetainers(retainersRes.data);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
@@ -609,10 +612,7 @@ function App() {
   }, [recurringMeetings, entries]);
 
   const getSchemeForCompany = useCallback((companyId) => {
-    return discountSchemes.find(scheme => {
-      // Get company IDs for this scheme
-      return true;
-    }) || null;
+    return discountSchemes.find(scheme => scheme.companyIds && scheme.companyIds.includes(companyId)) || null;
   }, [discountSchemes]);
 
   const getCompanyBudget = useCallback((companyId, monthKey) => {
@@ -620,6 +620,15 @@ function App() {
     if (!company) return { payment: 0, credit: 0, rollover: 0, total: 0, used: 0, remaining: 0, pct: 0 };
 
     // Find retainer for this month
+    const ret = retainers.find(r => r.company_id === companyId && r.month === monthKey);
+    const payment = ret ? ret.payment_czk : 0;
+    const rollover = ret ? parseFloat(ret.rollover_czk || 0) : 0;
+
+    const scheme = getSchemeForCompany(companyId);
+    const tiers = scheme && !scheme.no_discount ? scheme.tiers : null;
+    const credit = calculateCredit(payment, tiers);
+    const total = credit + rollover;
+
     const monthEntries = entries.filter(e => e.company_id === companyId && getMonthKey(e.date) === monthKey);
     let used = 0;
     for (const entry of monthEntries) {
@@ -627,8 +636,10 @@ function App() {
       if (user) used += (entry.duration_min / 60) * user.hourly_rate;
     }
 
-    return { payment: 0, credit: 0, rollover: 0, total: 0, used, remaining: 0, pct: 0 };
-  }, [companies, entries, users]);
+    const remaining = total - used;
+    const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+    return { payment, credit, rollover, total, used, remaining, pct };
+  }, [companies, entries, users, retainers, getSchemeForCompany]);
 
   const addEntry = async (entry) => {
     if (!supabase) return;
@@ -773,6 +784,7 @@ function App() {
             companies={companies} setCompanies={setCompanies}
             users={users} setUsers={setUsers}
             discountSchemes={discountSchemes} setDiscountSchemes={setDiscountSchemes}
+            retainers={retainers} setRetainers={setRetainers}
             recurringMeetings={recurringMeetings} setRecurringMeetings={setRecurringMeetings}
             currentUser={currentUser}
           />
@@ -2597,7 +2609,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 }
 
 // ==================== ADMIN PAGE ====================
-function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, setDiscountSchemes, recurringMeetings, setRecurringMeetings, currentUser }) {
+function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, setDiscountSchemes, retainers, setRetainers, recurringMeetings, setRecurringMeetings, currentUser }) {
   const [tab, setTab] = useState('users');
   const [editUser, setEditUser] = useState(null);
   const [editCompany, setEditCompany] = useState(null);
@@ -2715,19 +2727,63 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {tab === 'companies' && (
         <div>
           {companies.map(c => {
+            const month = currentMonthKey();
+            const ret = retainers.find(r => r.company_id === c.id && r.month === month);
+            const payment = ret ? ret.payment_czk : 0;
+            const rollover = ret ? parseFloat(ret.rollover_czk || 0) : 0;
             const scheme = discountSchemes.find(s => s.companyIds && s.companyIds.includes(c.id));
+            const tiers = scheme && !scheme.no_discount ? scheme.tiers : null;
+            const credit = calculateCredit(payment, tiers);
             return (
               <div key={c.id} className="card" style={{marginBottom:12}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
                   <div>
-                    <div style={{fontWeight:600}}>{c.name}</div>
+                    <div style={{fontWeight:600,fontSize:15}}>{c.name}</div>
                     <div style={{fontSize:12,color:'var(--text-secondary)'}}>
                       {c.ico ? 'IČ: '+c.ico : ''}{c.dic ? ' · DIČ: '+c.dic : ''}{c.is_vat_payer ? ' · Plátce DPH' : ''}
                     </div>
                     {scheme && <div style={{fontSize:12,color:'var(--primary)',marginTop:2}}>Slevové schéma: {scheme.name}</div>}
+                    <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>Retainer {getMonthLabel(month)}</div>
                   </div>
                   <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
                     <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
+                  </button>
+                </div>
+                <div className="stats-row" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
+                  <div className="stat-box">
+                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(payment)}</div>
+                    <div className="stat-label">Platba</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(credit)}</div>
+                    <div className="stat-label">Kredit</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(rollover)}</div>
+                    <div className="stat-label">Rollover</div>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:8,marginTop:8}}>
+                  <button className="btn btn-outline btn-sm" style={{flex:1}} onClick={() => {
+                    const newPayment = prompt('Měsíční platba (Kč) pro ' + c.name + ' (' + getMonthLabel(month) + '):', payment);
+                    if (newPayment !== null) {
+                      const newRollover = prompt('Rollover z předchozího měsíce (Kč):', rollover);
+                      const payVal = parseInt(newPayment) || 0;
+                      const rollVal = parseFloat(newRollover) || 0;
+                      if (window.__supabase) {
+                        if (ret) {
+                          window.__supabase.from('retainers').update({ payment_czk: payVal, rollover_czk: rollVal }).eq('id', ret.id).then(() => {
+                            setRetainers(prev => prev.map(r => r.id === ret.id ? {...r, payment_czk: payVal, rollover_czk: rollVal} : r));
+                          });
+                        } else {
+                          window.__supabase.from('retainers').insert([{ company_id: c.id, month: month, payment_czk: payVal, rollover_czk: rollVal }]).select().then(({data}) => {
+                            if (data && data[0]) setRetainers(prev => [...prev, data[0]]);
+                          });
+                        }
+                      }
+                    }
+                  }}>
+                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span> Upravit retainer
                   </button>
                 </div>
               </div>
