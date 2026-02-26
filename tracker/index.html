@@ -619,10 +619,17 @@ function App() {
     const company = companies.find(c => c.id === companyId);
     if (!company) return { payment: 0, credit: 0, rollover: 0, total: 0, used: 0, remaining: 0, pct: 0 };
 
-    // Find retainer for this month
-    const ret = retainers.find(r => r.company_id === companyId && r.month === monthKey);
+    // Find retainer for this month (or inherit from valid_from)
+    let ret = retainers.find(r => r.company_id === companyId && r.month === monthKey);
+    if (!ret) {
+      // Look for a base retainer with valid_from <= monthKey
+      const baseRetainers = retainers
+        .filter(r => r.company_id === companyId && r.valid_from && r.valid_from <= monthKey)
+        .sort((a,b) => b.valid_from.localeCompare(a.valid_from));
+      if (baseRetainers.length > 0) ret = baseRetainers[0];
+    }
     const payment = ret ? ret.payment_czk : 0;
-    const rollover = ret ? parseFloat(ret.rollover_czk || 0) : 0;
+    const rollover = ret && ret.month === monthKey ? parseFloat(ret.rollover_czk || 0) : 0;
 
     const scheme = getSchemeForCompany(companyId);
     const tiers = scheme && !scheme.no_discount ? scheme.tiers : null;
@@ -2614,6 +2621,8 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   const [editUser, setEditUser] = useState(null);
   const [editCompany, setEditCompany] = useState(null);
   const [editingScheme, setEditingScheme] = useState(null);
+  const [retainerMonth, setRetainerMonth] = useState(currentMonthKey());
+  const [editRetainer, setEditRetainer] = useState(null);
 
   if (!currentUser?.is_admin) {
     return <div style={{padding:20, textAlign:'center', color:'var(--text-secondary)'}}>Přístup pouze pro administrátory</div>;
@@ -2726,14 +2735,36 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
 
       {tab === 'companies' && (
         <div>
+          <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
+            <label className="form-label" style={{margin:0,whiteSpace:'nowrap'}}>Měsíc:</label>
+            <input className="input" type="month" value={retainerMonth} onChange={e=>setRetainerMonth(e.target.value)} style={{flex:1,maxWidth:200}} />
+            <span style={{fontSize:13,color:'var(--text-secondary)'}}>{getMonthLabel(retainerMonth)}</span>
+          </div>
           {companies.map(c => {
-            const month = currentMonthKey();
-            const ret = retainers.find(r => r.company_id === c.id && r.month === month);
+            const ret = retainers.find(r => r.company_id === c.id && r.month === retainerMonth);
             const payment = ret ? ret.payment_czk : 0;
             const rollover = ret ? parseFloat(ret.rollover_czk || 0) : 0;
+            const validFrom = ret ? ret.valid_from : null;
             const scheme = discountSchemes.find(s => s.companyIds && s.companyIds.includes(c.id));
             const tiers = scheme && !scheme.no_discount ? scheme.tiers : null;
             const credit = calculateCredit(payment, tiers);
+
+            // If no retainer for this month, check if there's a base retainer (valid_from <= this month)
+            let inheritedPayment = payment;
+            let inheritedRollover = rollover;
+            let isInherited = false;
+            if (!ret) {
+              const baseRetainers = retainers
+                .filter(r => r.company_id === c.id && r.valid_from && r.valid_from <= retainerMonth)
+                .sort((a,b) => b.valid_from.localeCompare(a.valid_from));
+              if (baseRetainers.length > 0) {
+                inheritedPayment = baseRetainers[0].payment_czk;
+                isInherited = true;
+              }
+            }
+            const displayPayment = ret ? payment : inheritedPayment;
+            const displayCredit = calculateCredit(displayPayment, tiers);
+
             return (
               <div key={c.id} className="card" style={{marginBottom:12}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
@@ -2743,19 +2774,30 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                       {c.ico ? 'IČ: '+c.ico : ''}{c.dic ? ' · DIČ: '+c.dic : ''}{c.is_vat_payer ? ' · Plátce DPH' : ''}
                     </div>
                     {scheme && <div style={{fontSize:12,color:'var(--primary)',marginTop:2}}>Slevové schéma: {scheme.name}</div>}
-                    <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>Retainer {getMonthLabel(month)}</div>
+                    {isInherited && <div style={{fontSize:11,color:'var(--warning)',marginTop:2}}>Zděděno z dřívějšího nastavení</div>}
                   </div>
-                  <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
-                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
-                  </button>
+                  <div style={{display:'flex',gap:6}}>
+                    <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
+                      <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.settings}</span>
+                    </button>
+                    <button className="btn btn-outline btn-sm" onClick={() => setEditRetainer({
+                      company_id: c.id, company_name: c.name, month: retainerMonth,
+                      payment_czk: ret ? ret.payment_czk : inheritedPayment,
+                      rollover_czk: ret ? parseFloat(ret.rollover_czk||0) : 0,
+                      valid_from: ret ? (ret.valid_from || retainerMonth) : retainerMonth,
+                      existing_id: ret ? ret.id : null
+                    })}>
+                      <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="stats-row" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
                   <div className="stat-box">
-                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(payment)}</div>
+                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(displayPayment)}</div>
                     <div className="stat-label">Platba</div>
                   </div>
                   <div className="stat-box">
-                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(credit)}</div>
+                    <div className="stat-value" style={{fontSize:16}}>{formatCzk(displayCredit)}</div>
                     <div className="stat-label">Kredit</div>
                   </div>
                   <div className="stat-box">
@@ -2763,36 +2805,73 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                     <div className="stat-label">Rollover</div>
                   </div>
                 </div>
-                <div style={{display:'flex',gap:8,marginTop:8}}>
-                  <button className="btn btn-outline btn-sm" style={{flex:1}} onClick={() => {
-                    const newPayment = prompt('Měsíční platba (Kč) pro ' + c.name + ' (' + getMonthLabel(month) + '):', payment);
-                    if (newPayment !== null) {
-                      const newRollover = prompt('Rollover z předchozího měsíce (Kč):', rollover);
-                      const payVal = parseInt(newPayment) || 0;
-                      const rollVal = parseFloat(newRollover) || 0;
-                      if (window.__supabase) {
-                        if (ret) {
-                          window.__supabase.from('retainers').update({ payment_czk: payVal, rollover_czk: rollVal }).eq('id', ret.id).then(() => {
-                            setRetainers(prev => prev.map(r => r.id === ret.id ? {...r, payment_czk: payVal, rollover_czk: rollVal} : r));
-                          });
-                        } else {
-                          window.__supabase.from('retainers').insert([{ company_id: c.id, month: month, payment_czk: payVal, rollover_czk: rollVal }]).select().then(({data}) => {
-                            if (data && data[0]) setRetainers(prev => [...prev, data[0]]);
-                          });
-                        }
-                      }
-                    }
-                  }}>
-                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span> Upravit retainer
-                  </button>
-                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {tab === 'tiers' && (
+      {/* Edit Retainer Modal */}
+      {editRetainer && (
+        <div className="modal-overlay" onClick={() => setEditRetainer(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h2>Retainer — {editRetainer.company_name}</h2>
+            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>Měsíc: {getMonthLabel(editRetainer.month)}</div>
+            <div className="form-group">
+              <label className="form-label">Platí od (měsíc)</label>
+              <input className="input" type="month" value={editRetainer.valid_from || ''} onChange={e=>setEditRetainer({...editRetainer, valid_from:e.target.value})} />
+              <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:4}}>Retainer se automaticky přenáší do dalších měsíců od tohoto data</div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Měsíční platba (Kč)</label>
+              <input className="input" type="number" value={editRetainer.payment_czk} onChange={e=>setEditRetainer({...editRetainer, payment_czk:parseInt(e.target.value)||0})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Rollover z předchozího měsíce (Kč)</label>
+              <input className="input" type="number" value={editRetainer.rollover_czk} onChange={e=>setEditRetainer({...editRetainer, rollover_czk:parseFloat(e.target.value)||0})} />
+            </div>
+            {(() => {
+              const scheme = discountSchemes.find(s => s.companyIds && s.companyIds.includes(editRetainer.company_id));
+              const tiers = scheme && !scheme.no_discount ? scheme.tiers : null;
+              const credit = calculateCredit(editRetainer.payment_czk, tiers);
+              return (
+                <div style={{padding:12,background:'var(--bg)',borderRadius:8,marginBottom:16,fontSize:13}}>
+                  {scheme && <div style={{marginBottom:6}}>Schéma: <strong>{scheme.name}</strong> {scheme.no_discount && '(bez slevy)'}</div>}
+                  <div>Kredit z platby: <strong>{formatCzk(credit)}</strong></div>
+                  <div>+ Rollover: <strong>{formatCzk(editRetainer.rollover_czk)}</strong></div>
+                  <div style={{borderTop:'1px solid var(--border)',marginTop:6,paddingTop:6,fontWeight:700}}>
+                    Celkový budget: {formatCzk(credit + editRetainer.rollover_czk)}
+                  </div>
+                </div>
+              );
+            })()}
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+              <button className="btn btn-outline" onClick={()=>setEditRetainer(null)}>Zrušit</button>
+              <button className="btn btn-primary" onClick={async () => {
+                if (window.__supabase) {
+                  const data = {
+                    company_id: editRetainer.company_id,
+                    month: editRetainer.month,
+                    payment_czk: editRetainer.payment_czk,
+                    rollover_czk: editRetainer.rollover_czk,
+                    valid_from: editRetainer.valid_from || editRetainer.month
+                  };
+                  if (editRetainer.existing_id) {
+                    await window.__supabase.from('retainers').update(data).eq('id', editRetainer.existing_id);
+                    setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? {...r, ...data} : r));
+                  } else {
+                    const { data: inserted } = await window.__supabase.from('retainers').insert([data]).select();
+                    if (inserted && inserted[0]) setRetainers(prev => [...prev, inserted[0]]);
+                  }
+                }
+                setEditRetainer(null);
+              }}>Uložit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+            {tab === 'tiers' && (
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditingScheme({name:'',no_discount:false,companyIds:[],tiers:[{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
