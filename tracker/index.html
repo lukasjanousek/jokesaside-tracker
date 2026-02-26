@@ -464,11 +464,13 @@ function App() {
     if (!supabase) return;
     try {
       setLoading(true);
-      const [companiesRes, usersRes, entriesRes, schemesRes, meetingsRes, locksRes] = await Promise.all([
+      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*').eq('is_active', true),
         supabase.from('time_entries').select('*'),
         supabase.from('discount_schemes').select('*'),
+        supabase.from('discount_scheme_companies').select('*'),
+        supabase.from('discount_tiers').select('*'),
         supabase.from('recurring_meetings').select('*').eq('is_active', true),
         supabase.from('billing_locks').select('*'),
       ]);
@@ -476,7 +478,15 @@ function App() {
       if (companiesRes.data) setCompanies(companiesRes.data);
       if (usersRes.data) setUsers(usersRes.data);
       if (entriesRes.data) setEntries(entriesRes.data);
-      if (schemesRes.data) setDiscountSchemes(schemesRes.data);
+      // Merge discount schemes with their companies and tiers
+      if (schemesRes.data) {
+        const schemes = schemesRes.data.map(s => ({
+          ...s,
+          companyIds: (schemeCompaniesRes.data || []).filter(sc => sc.scheme_id === s.id).map(sc => sc.company_id),
+          tiers: (schemeTiersRes.data || []).filter(t => t.scheme_id === s.id).sort((a,b) => a.from_czk - b.from_czk)
+        }));
+        setDiscountSchemes(schemes);
+      }
       if (meetingsRes.data) setRecurringMeetings(meetingsRes.data);
       if (locksRes.data) setBillingLocks(locksRes.data);
     } catch (err) {
@@ -2588,133 +2598,206 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
 // ==================== ADMIN PAGE ====================
 function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, setDiscountSchemes, recurringMeetings, setRecurringMeetings, currentUser }) {
-  const [editCompany, setEditCompany] = useState(null);
+  const [tab, setTab] = useState('users');
   const [editUser, setEditUser] = useState(null);
+  const [editCompany, setEditCompany] = useState(null);
+  const [editingScheme, setEditingScheme] = useState(null);
 
   if (!currentUser?.is_admin) {
     return <div style={{padding:20, textAlign:'center', color:'var(--text-secondary)'}}>Přístup pouze pro administrátory</div>;
   }
 
-  const handleSaveCompany = (company) => {
+  const handleSaveUser = async (userData) => {
+    if (window.__supabase && userData.id) {
+      await window.__supabase.from('profiles').update({
+        name: userData.name, email: userData.email, position: userData.position,
+        division: userData.division, hourly_rate: userData.hourly_rate, is_admin: userData.is_admin
+      }).eq('id', userData.id);
+    }
+    setUsers(prev => prev.map(u => u.id === userData.id ? {...u, ...userData} : u));
+    setEditUser(null);
+  };
+
+  const handleSaveCompany = async (company) => {
+    if (window.__supabase && company.id) {
+      await window.__supabase.from('companies').update({
+        name: company.name, legal_name: company.legal_name, address: company.address,
+        ico: company.ico, dic: company.dic, is_vat_payer: company.is_vat_payer
+      }).eq('id', company.id);
+    }
     setCompanies(prev => prev.map(c => c.id === company.id ? company : c));
     setEditCompany(null);
   };
 
-  const handleSaveUser = (user) => {
-    setUsers(prev => prev.map(u => u.id === user.id ? user : u));
-    setEditUser(null);
+  const handleSaveScheme = async (scheme) => {
+    if (!window.__supabase) return;
+    const sb = window.__supabase;
+
+    if (scheme.id) {
+      // Update existing
+      await sb.from('discount_schemes').update({ name: scheme.name, no_discount: scheme.no_discount }).eq('id', scheme.id);
+      // Replace companies
+      await sb.from('discount_scheme_companies').delete().eq('scheme_id', scheme.id);
+      if (scheme.companyIds.length > 0) {
+        await sb.from('discount_scheme_companies').insert(scheme.companyIds.map(cid => ({ scheme_id: scheme.id, company_id: cid })));
+      }
+      // Replace tiers
+      await sb.from('discount_tiers').delete().eq('scheme_id', scheme.id);
+      if (!scheme.no_discount && scheme.tiers && scheme.tiers.length > 0) {
+        await sb.from('discount_tiers').insert(scheme.tiers.map(t => ({ scheme_id: scheme.id, from_czk: t.from_czk, to_czk: t.to_czk, discount_pct: t.discount_pct })));
+      }
+      setDiscountSchemes(prev => prev.map(s => s.id === scheme.id ? scheme : s));
+    } else {
+      // Insert new
+      const { data } = await sb.from('discount_schemes').insert([{ name: scheme.name, no_discount: scheme.no_discount }]).select();
+      if (data && data[0]) {
+        const newId = data[0].id;
+        if (scheme.companyIds.length > 0) {
+          await sb.from('discount_scheme_companies').insert(scheme.companyIds.map(cid => ({ scheme_id: newId, company_id: cid })));
+        }
+        if (!scheme.no_discount && scheme.tiers && scheme.tiers.length > 0) {
+          await sb.from('discount_tiers').insert(scheme.tiers.map(t => ({ scheme_id: newId, from_czk: t.from_czk, to_czk: t.to_czk, discount_pct: t.discount_pct })));
+        }
+        setDiscountSchemes(prev => [...prev, { ...scheme, id: newId }]);
+      }
+    }
+    setEditingScheme(null);
+  };
+
+  const handleDeleteScheme = async (schemeId) => {
+    if (window.__supabase) {
+      await window.__supabase.from('discount_schemes').delete().eq('id', schemeId);
+    }
+    setDiscountSchemes(prev => prev.filter(s => s.id !== schemeId));
   };
 
   return (
     <div>
-      <div className="section-title">Správa</div>
+      <div className="section-title">Administrace</div>
 
-      {/* Companies */}
-      <div className="card" style={{marginBottom:20}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-          <h3 style={{fontSize:15, fontWeight:600}}>Firmy</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setEditCompany('new')}>
-            <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Nová
-          </button>
-        </div>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Název</th>
-              <th>IČ</th>
-              <th>DIČ</th>
-              <th style={{width:60}}>DPH</th>
-              <th style={{width:60}}>Akce</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companies.map(c => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>{c.ico || '-'}</td>
-                <td>{c.dic || '-'}</td>
-                <td>{c.is_vat_payer ? 'Ano' : 'Ne'}</td>
-                <td>
-                  <button className="btn-icon" onClick={() => setEditCompany(c)} title="Upravit" style={{width:32,height:32}}>
-                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="tabs">
+        <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Lidé</button>
+        <button className={`tab ${tab==='companies'?'active':''}`} onClick={()=>setTab('companies')}>Firmy</button>
+        <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>Slevová pásma</button>
       </div>
 
-      {/* Users */}
-      <div className="card">
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-          <h3 style={{fontSize:15, fontWeight:600}}>Lidé</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setEditUser({id:'',name:'',email:'',position:'',division:'',hourly_rate:0,is_admin:false})}>
-            <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Nový
-          </button>
-        </div>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Jméno</th>
-              <th>Email</th>
-              <th>Pozice</th>
-              <th>Sazba</th>
-              <th style={{width:60}}>Admin</th>
-              <th style={{width:60}}>Akce</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>{u.name}</td>
-                <td style={{fontSize:12}}>{u.email}</td>
-                <td>{u.position}</td>
-                <td>{u.hourly_rate} Kč/h</td>
-                <td>{u.is_admin ? '✓' : '-'}</td>
-                <td>
-                  <button className="btn-icon" onClick={() => setEditUser(u)} title="Upravit" style={{width:32,height:32}}>
-                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Edit Company Modal */}
-      {editCompany && editCompany !== 'new' && (
-        <div className="modal-overlay" onClick={() => setEditCompany(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h2>Upravit firmu — {editCompany.name}</h2>
-            <div className="form-group">
-              <label className="form-label">Obchodní jméno</label>
-              <input className="input" value={editCompany.legal_name||''} onChange={e=>setEditCompany({...editCompany, legal_name:e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Adresa</label>
-              <input className="input" value={editCompany.address||''} onChange={e=>setEditCompany({...editCompany, address:e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">IČ</label>
-              <input className="input" value={editCompany.ico||''} onChange={e=>setEditCompany({...editCompany, ico:e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">DIČ</label>
-              <input className="input" value={editCompany.dic||''} onChange={e=>setEditCompany({...editCompany, dic:e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
-                <input type="checkbox" checked={editCompany.is_vat_payer||false} onChange={e=>setEditCompany({...editCompany, is_vat_payer:e.target.checked})} />
-                <span className="form-label" style={{margin:0}}>Plátce DPH</span>
-              </label>
-            </div>
-            <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
-              <button className="btn btn-outline" onClick={()=>setEditCompany(null)}>Zrušit</button>
-              <button className="btn btn-primary" onClick={()=>handleSaveCompany(editCompany)}>Uložit</button>
-            </div>
+      {tab === 'users' && (
+        <div>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+            <button className="btn btn-primary btn-sm" onClick={() => setEditUser({id:'',name:'',email:'',position:'',division:'',hourly_rate:0,is_admin:false})}>
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat osobu
+            </button>
           </div>
+          <div className="scroll-x">
+            <table className="admin-table">
+              <thead><tr><th>Jméno</th><th>Pozice</th><th>Divize</th><th>Sazba</th><th>Admin</th><th></th></tr></thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id}>
+                    <td><div style={{fontWeight:500}}>{u.name}</div><div style={{fontSize:12,color:'var(--text-secondary)'}}>{u.email}</div></td>
+                    <td>{u.position}</td>
+                    <td>{u.division}</td>
+                    <td>{(u.hourly_rate||0).toLocaleString('cs-CZ')} Kč/h</td>
+                    <td>{u.is_admin ? <span className="badge badge-success">Admin</span> : '—'}</td>
+                    <td>
+                      <button className="btn-icon btn-outline btn-sm" onClick={() => setEditUser({...u})} title="Upravit">
+                        <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'companies' && (
+        <div>
+          {companies.map(c => {
+            const scheme = discountSchemes.find(s => s.companyIds && s.companyIds.includes(c.id));
+            return (
+              <div key={c.id} className="card" style={{marginBottom:12}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:600}}>{c.name}</div>
+                    <div style={{fontSize:12,color:'var(--text-secondary)'}}>
+                      {c.ico ? 'IČ: '+c.ico : ''}{c.dic ? ' · DIČ: '+c.dic : ''}{c.is_vat_payer ? ' · Plátce DPH' : ''}
+                    </div>
+                    {scheme && <div style={{fontSize:12,color:'var(--primary)',marginTop:2}}>Slevové schéma: {scheme.name}</div>}
+                  </div>
+                  <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
+                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === 'tiers' && (
+        <div>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+            <button className="btn btn-primary btn-sm" onClick={() => setEditingScheme({name:'',no_discount:false,companyIds:[],tiers:[{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Nové schéma
+            </button>
+          </div>
+          {discountSchemes.map(scheme => (
+            <div key={scheme.id} className="card" style={{marginBottom:12}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+                <div>
+                  <div style={{fontWeight:600,fontSize:15}}>{scheme.name}</div>
+                  <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>
+                    {scheme.no_discount ? 'Bez slevy (100% kredit)' : (scheme.tiers?.length || 0) + ' pásem'}
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:6}}>
+                  <button className="btn btn-outline btn-sm" onClick={() => setEditingScheme({...scheme, companyIds: [...(scheme.companyIds||[])], tiers: (scheme.tiers||[]).map(t=>({...t}))})} title="Upravit">
+                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
+                  </button>
+                  {(!scheme.companyIds || scheme.companyIds.length === 0) && (
+                    <button className="btn delete-btn" onClick={() => handleDeleteScheme(scheme.id)} title="Smazat">
+                      <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.trash}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div style={{marginBottom:10}}>
+                <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',marginBottom:6}}>Přiřazené firmy:</div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  {(!scheme.companyIds || scheme.companyIds.length === 0) ? (
+                    <span style={{fontSize:13,color:'var(--text-secondary)'}}>Žádné</span>
+                  ) : (
+                    scheme.companyIds.map(cid => {
+                      const comp = companies.find(c => c.id === cid);
+                      return <span key={cid} className="badge badge-success">{comp?.name || cid}</span>;
+                    })
+                  )}
+                </div>
+              </div>
+              {!scheme.no_discount && scheme.tiers && scheme.tiers.length > 0 && (
+                <div className="scroll-x">
+                  <table className="admin-table" style={{marginTop:8}}>
+                    <thead><tr><th>Pásmo</th><th>Od (Kč)</th><th>Do (Kč)</th><th>Sleva</th></tr></thead>
+                    <tbody>
+                      {scheme.tiers.map((t, i) => (
+                        <tr key={i}>
+                          <td style={{fontWeight:600}}>{i+1}</td>
+                          <td>{(t.from_czk||0).toLocaleString('cs-CZ')}</td>
+                          <td>{(t.to_czk||0).toLocaleString('cs-CZ')}</td>
+                          <td><span className="badge badge-success">{Math.round((t.discount_pct||0)*100)}%</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ))}
+          {discountSchemes.length === 0 && (
+            <div style={{textAlign:'center',color:'var(--text-secondary)',padding:20}}>Žádná slevová schémata. Klikněte na "Nové schéma" pro vytvoření.</div>
+          )}
         </div>
       )}
 
@@ -2758,6 +2841,106 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
               <button className="btn btn-outline" onClick={()=>setEditUser(null)}>Zrušit</button>
               <button className="btn btn-primary" onClick={()=>handleSaveUser(editUser)}>Uložit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Company Modal */}
+      {editCompany && (
+        <div className="modal-overlay" onClick={() => setEditCompany(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h2>Upravit firmu — {editCompany.name}</h2>
+            <div className="form-group">
+              <label className="form-label">Název</label>
+              <input className="input" value={editCompany.name||''} onChange={e=>setEditCompany({...editCompany, name:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Obchodní jméno</label>
+              <input className="input" value={editCompany.legal_name||''} onChange={e=>setEditCompany({...editCompany, legal_name:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Adresa</label>
+              <input className="input" value={editCompany.address||''} onChange={e=>setEditCompany({...editCompany, address:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">IČ</label>
+              <input className="input" value={editCompany.ico||''} onChange={e=>setEditCompany({...editCompany, ico:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">DIČ</label>
+              <input className="input" value={editCompany.dic||''} onChange={e=>setEditCompany({...editCompany, dic:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
+                <input type="checkbox" checked={editCompany.is_vat_payer||false} onChange={e=>setEditCompany({...editCompany, is_vat_payer:e.target.checked})} />
+                <span className="form-label" style={{margin:0}}>Plátce DPH</span>
+              </label>
+            </div>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
+              <button className="btn btn-outline" onClick={()=>setEditCompany(null)}>Zrušit</button>
+              <button className="btn btn-primary" onClick={()=>handleSaveCompany(editCompany)}>Uložit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Discount Scheme Modal */}
+      {editingScheme && (
+        <div className="modal-overlay" onClick={() => setEditingScheme(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()} style={{maxHeight:'85dvh',overflowY:'auto'}}>
+            <h2>{editingScheme.id ? 'Upravit schéma' : 'Nové schéma slevy'}</h2>
+            <div className="form-group">
+              <label className="form-label">Název schématu</label>
+              <input className="input" value={editingScheme.name} onChange={e=>setEditingScheme({...editingScheme,name:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
+                <input type="checkbox" checked={editingScheme.no_discount} onChange={e=>setEditingScheme({...editingScheme,no_discount:e.target.checked})} />
+                <span className="form-label" style={{margin:0}}>Bez slevy (kredit = platba)</span>
+              </label>
+            </div>
+            {!editingScheme.no_discount && (
+              <div>
+                <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>Pásma slevy:</div>
+                {(editingScheme.tiers||[]).map((tier,i) => (
+                  <div key={i} style={{display:'flex',gap:6,alignItems:'center',marginBottom:10,padding:10,background:'var(--bg)',borderRadius:8}}>
+                    <div style={{flex:1}}>
+                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Od (Kč)</label>
+                      <input className="input" type="number" value={tier.from_czk} onChange={e=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.map((t,j)=>j===i?{...t,from_czk:parseInt(e.target.value)||0}:t)})} />
+                    </div>
+                    <div style={{flex:1}}>
+                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Do (Kč)</label>
+                      <input className="input" type="number" value={tier.to_czk} onChange={e=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.map((t,j)=>j===i?{...t,to_czk:parseInt(e.target.value)||0}:t)})} />
+                    </div>
+                    <div style={{flex:0.8}}>
+                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Sleva (%)</label>
+                      <input className="input" type="number" min="0" max="100" value={Math.round((tier.discount_pct||0)*100)} onChange={e=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.map((t,j)=>j===i?{...t,discount_pct:(parseInt(e.target.value)||0)/100}:t)})} />
+                    </div>
+                    <button className="delete-btn" onClick={()=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.filter((_,j)=>j!==i)})} style={{marginTop:20}}>
+                      <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.trash}</span>
+                    </button>
+                  </div>
+                ))}
+                <button className="btn btn-outline btn-sm" style={{width:'100%',marginBottom:12}} onClick={()=>setEditingScheme({...editingScheme,tiers:[...(editingScheme.tiers||[]),{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
+                  <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat pásmo
+                </button>
+              </div>
+            )}
+            <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>Přiřadit firmám:</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
+              {companies.map(c => {
+                const isSelected = (editingScheme.companyIds||[]).includes(c.id);
+                return (
+                  <button key={c.id} className={`btn btn-sm ${isSelected?'btn-primary':'btn-outline'}`} onClick={() => setEditingScheme({...editingScheme,companyIds:isSelected?(editingScheme.companyIds||[]).filter(id=>id!==c.id):[...(editingScheme.companyIds||[]),c.id]})}>
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
+              <button className="btn btn-outline" onClick={()=>setEditingScheme(null)}>Zrušit</button>
+              <button className="btn btn-primary" onClick={()=>handleSaveScheme(editingScheme)}>Uložit</button>
             </div>
           </div>
         </div>
