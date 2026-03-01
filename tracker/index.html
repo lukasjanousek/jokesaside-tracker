@@ -823,7 +823,7 @@ function App() {
 // ==================== DASHBOARD ====================
 function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompany, timerRunning, timerCompany, timerDesc, timerElapsed, onStartTimer, onStopTimer, onAddManual, currentUser, recurringMeetings, setRecurringMeetings }) {
   const month = currentMonthKey();
-  const [quickCompany, setQuickCompany] = useState('');
+  const [quickCompanies, setQuickCompanies] = useState([]);
   const [quickDesc, setQuickDesc] = useState('');
   const [manualHours, setManualHours] = useState('');
   const [manualMins, setManualMins] = useState('');
@@ -855,14 +855,16 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   }, [quickDesc, entries, currentUser]);
 
   const handleStartTimer = () => {
-    if (!quickCompany || !quickDesc) return;
-    onStartTimer(quickCompany, quickDesc);
+    if (quickCompanies.length === 0 || !quickDesc) return;
+    onStartTimer(quickCompanies[0], quickDesc);
   };
   const handleManualAdd = () => {
-    if (!quickCompany || !quickDesc) return;
+    if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
     if (totalMins <= 0) return;
-    onAddManual(quickCompany, quickDesc, totalMins, manualDate);
+    quickCompanies.forEach(compId => {
+      onAddManual(compId, quickDesc, totalMins, manualDate);
+    });
     setQuickDesc(''); setManualHours(''); setManualMins(''); setDashTimeFrom(''); setDashTimeTo('');
   };
 
@@ -895,14 +897,18 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
             {dashMode === 'task' && (
             <div>
             <div className="company-pills">
-              {companies.filter(c => c.is_active).map(c => (
-                <button key={c.id} className={`company-pill ${quickCompany===c.id?'selected':''}`}
-                  onClick={()=>setQuickCompany(c.id)}
-                  style={quickCompany===c.id?{borderColor:c.color,background:c.color+'15',color:c.color}:{}}>
-                  {c.name}
-                </button>
-              ))}
+              {companies.filter(c => c.is_active).map(c => {
+                const isSelected = quickCompanies.includes(c.id);
+                return (
+                  <button key={c.id} className={`company-pill ${isSelected?'selected':''}`}
+                    onClick={()=>setQuickCompanies(prev => isSelected ? prev.filter(id=>id!==c.id) : [...prev, c.id])}
+                    style={isSelected?{borderColor:c.color,background:c.color+'15',color:c.color}:{}}>
+                    {c.name}
+                  </button>
+                );
+              })}
             </div>
+            {quickCompanies.length > 1 && <div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4,textAlign:'center'}}>{quickCompanies.length} firem vybráno — task se přidá ke všem</div>}
             <div style={{position:'relative',marginBottom:8}}>
               <input className="input" placeholder="Co jdeš dělat?" value={quickDesc}
                 ref={dashDescRef}
@@ -920,7 +926,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               )}
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,alignItems:'stretch'}}>
-              <button className="btn btn-primary" style={{whiteSpace:'nowrap',padding:'12px 16px',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',gap:6}} onClick={handleStartTimer} disabled={!quickCompany||!quickDesc}>
+              <button className="btn btn-primary" style={{whiteSpace:'nowrap',padding:'12px 16px',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',gap:6}} onClick={handleStartTimer} disabled={quickCompanies.length===0||!quickDesc}>
                 <span style={{width:18,height:18,display:'inline-flex'}}>{Icons.play}</span> Spustit timer
               </button>
               <div style={{border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:8,background:'var(--surface)'}}>
@@ -1460,7 +1466,7 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
 
 // ==================== TRACK PAGE ====================
 function TrackPage({ companies, currentUser, entries, users, timerRunning, timerCompany, timerDesc, timerElapsed, onStartTimer, onStopTimer, onAddManual, onDeleteEntry, onUpdateEntry, isEntryLocked, recurringMeetings, setRecurringMeetings }) {
-  const [selCompany, setSelCompany] = useState('');
+  const [selCompanies, setSelCompanies] = useState([]);
   const [desc, setDesc] = useState('');
   const [hours, setHours] = useState('');
   const [mins, setMins] = useState('');
@@ -1498,10 +1504,12 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
     : [];
 
   const handleAddManual = () => {
-    if (!selCompany || !desc) return;
+    if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
     if (totalMins <= 0) return;
-    onAddManual(selCompany, desc, totalMins, date);
+    selCompanies.forEach(compId => {
+      onAddManual(compId, desc, totalMins, date);
+    });
     setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr('');
   };
 
@@ -1539,15 +1547,21 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           {trackMode === 'task' && (
           <div>
           {/* Company selector */}
-          <div style={{fontSize:13,fontWeight:500,color:'var(--text-secondary)',marginBottom:6}}>Firma</div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+            <span style={{fontSize:13,fontWeight:500,color:'var(--text-secondary)'}}>Firma</span>
+            {selCompanies.length > 1 && <span style={{fontSize:11,color:'var(--primary)',fontWeight:500}}>{selCompanies.length} firem vybráno — task se přidá ke všem</span>}
+          </div>
           <div className="company-pills">
-            {companies.filter(c => c.is_active).map(c => (
-              <button key={c.id} className={`company-pill ${selCompany===c.id?'selected':''}`}
-                onClick={()=>setSelCompany(c.id)}
-                style={selCompany===c.id?{borderColor:c.color,background:c.color+'15',color:c.color}:{}}>
-                {c.name}
-              </button>
-            ))}
+            {companies.filter(c => c.is_active).map(c => {
+              const isSelected = selCompanies.includes(c.id);
+              return (
+                <button key={c.id} className={`company-pill ${isSelected?'selected':''}`}
+                  onClick={()=>setSelCompanies(prev => isSelected ? prev.filter(id=>id!==c.id) : [...prev, c.id])}
+                  style={isSelected?{borderColor:c.color,background:c.color+'15',color:c.color}:{}}>
+                  {c.name}
+                </button>
+              );
+            })}
           </div>
 
           <div style={{fontSize:13,fontWeight:500,color:'var(--text-secondary)',marginBottom:6,marginTop:8}}>Popis</div>
@@ -1575,8 +1589,8 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           {/* Timer + Manual side by side */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1.5fr',gap:12,marginTop:12}}>
             {/* Left: Timer */}
-            <button className="btn btn-primary" onClick={() => { if(selCompany && desc) onStartTimer(selCompany, desc); }} disabled={!selCompany || !desc} style={{width:'100%'}}>
-              <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.play}</span> Spustit timer
+            <button className="btn btn-primary" onClick={() => { if(selCompanies.length > 0 && desc) onStartTimer(selCompanies[0], desc); }} disabled={selCompanies.length === 0 || !desc} style={{width:'100%'}}>
+              <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.play}</span> Spustit timer{selCompanies.length > 1 ? ' ('+companies.find(c=>c.id===selCompanies[0])?.name+')' : ''}
             </button>
 
             {/* Right: Manual entry */}
