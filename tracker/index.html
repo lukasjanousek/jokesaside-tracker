@@ -426,6 +426,7 @@ function App() {
   const [billingLocks, setBillingLocks] = useState([]);
   const [discountSchemes, setDiscountSchemes] = useState([]);
   const [retainers, setRetainers] = useState([]);
+  const [approvalRequests, setApprovalRequests] = useState([]);
   const [recurringMeetings, setRecurringMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -465,7 +466,7 @@ function App() {
     if (!supabase) return;
     try {
       setLoading(true);
-      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes] = await Promise.all([
+      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*').eq('is_active', true),
         supabase.from('time_entries').select('*'),
@@ -475,6 +476,7 @@ function App() {
         supabase.from('recurring_meetings').select('*').eq('is_active', true),
         supabase.from('billing_locks').select('*'),
         supabase.from('retainers').select('*'),
+        supabase.from('approval_requests').select('*'),
       ]);
 
       if (companiesRes.data) setCompanies(companiesRes.data);
@@ -492,6 +494,7 @@ function App() {
       if (meetingsRes.data) setRecurringMeetings(meetingsRes.data);
       if (locksRes.data) setBillingLocks(locksRes.data);
       if (retainersRes.data) setRetainers(retainersRes.data);
+      if (approvalRes && approvalRes.data) setApprovalRequests(approvalRes.data);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
@@ -724,7 +727,7 @@ function App() {
             onStartTimer={(compId, desc) => { setTimerRunning(true); setTimerStart(Date.now()); setTimerCompany(compId); setTimerDesc(desc); setTimerElapsed(0); }}
             onStopTimer={() => {
               if (timerCompany && timerDesc) {
-                const mins = Math.max(1, Math.round(timerElapsed / 60000));
+                const mins = Math.max(15, Math.round(timerElapsed / 60000));
                 addEntry({ user_id: currentUser.id, company_id: timerCompany, description: timerDesc, duration_min: mins, date: new Date().toISOString().slice(0,10), is_manual: false });
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
@@ -776,7 +779,9 @@ function App() {
         {page === 'reports' && (
           <ReportsPage
             companies={companies} users={users} entries={entries}
-            currentUser={currentUser} billingLocks={billingLocks} addBillingLock={async (lock) => {
+            currentUser={currentUser} billingLocks={billingLocks}
+            approvalRequests={approvalRequests} setApprovalRequests={setApprovalRequests}
+            addBillingLock={async (lock) => {
               if (supabase) {
                 const { data, error } = await supabase.from('billing_locks').insert([lock]).select();
                 if (!error && data && data[0]) {
@@ -861,7 +866,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const handleManualAdd = () => {
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
-    if (totalMins <= 0) return;
+    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
     quickCompanies.forEach(compId => {
       onAddManual(compId, quickDesc, totalMins, manualDate);
     });
@@ -952,9 +957,9 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                     }
                   }} style={{flex:1,fontSize:12,minWidth:60}} />
                   <span style={{fontSize:11,color:'var(--text-secondary)',margin:'0 1px'}}>=</span>
-                  <input className="input time-input" type="number" min="0" placeholder="0" value={manualHours} onChange={e=>{setManualHours(e.target.value);setDashTimeFrom('');setDashTimeTo('');}} style={{width:32,fontSize:12}} />
+                  <input className="input time-input" type="number" min="0" placeholder="0" value={manualHours} onChange={e=>{setManualHours(e.target.value);setDashTimeFrom('');setDashTimeTo('');}} style={{width:48,fontSize:12}} />
                   <span style={{fontSize:11,color:'var(--text-secondary)'}}>h</span>
-                  <input className="input time-input" type="number" min="0" max="59" placeholder="0" value={manualMins} onChange={e=>{setManualMins(e.target.value);setDashTimeFrom('');setDashTimeTo('');}} style={{width:32,fontSize:12}} />
+                  <input className="input time-input" type="number" min="0" max="59" placeholder="0" value={manualMins} onChange={e=>{setManualMins(e.target.value);setDashTimeFrom('');setDashTimeTo('');}} style={{width:48,fontSize:12}} />
                   <span style={{fontSize:11,color:'var(--text-secondary)'}}>m</span>
                 </div>
                 <div style={{display:'flex',gap:6,alignItems:'center'}}>
@@ -1235,7 +1240,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
       {/* Recent activity */}
       <div className="section-title" style={{marginTop:20}}>Poslední aktivita</div>
       <div className="task-list">
-        {entries.slice(0,5).map(e => {
+        {entries.sort((a,b) => b.date.localeCompare(a.date) || (b.id||'').localeCompare(a.id||'')).slice(0,5).map(e => {
           const user = users.find(u=>u.id===e.user_id);
           const comp = companies.find(c=>c.id===e.company_id);
           return (
@@ -1260,7 +1265,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
 
   const month = currentMonthKey();
   const budget = getCompanyBudget(company.id, month);
-  const companyEntries = entries.filter(e => e.company_id === company.id).sort((a,b) => b.date.localeCompare(a.date));
+  const companyEntries = entries.filter(e => e.company_id === company.id).sort((a,b) => b.date.localeCompare(a.date) || (b.created_at||'').localeCompare(a.created_at||''));
 
   const grouped = {};
   companyEntries.forEach(e => {
@@ -1377,11 +1382,13 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
   const comp = companies.find(c => c.id === entry.company_id);
   const user = users.find(u => u.id === entry.user_id);
   const isOwner = currentUser && entry.user_id === currentUser.id;
-  const canEdit = (isOwner || currentUser?.is_admin) && !isLocked;
+  const isManager = currentUser && entry.user_id !== currentUser.id && users.find(u => u.id === entry.user_id)?.manager_id === currentUser.id;
+  const canEdit = (isOwner || currentUser?.is_admin || isManager) && !isLocked;
 
   const handleSave = () => {
     const totalMins = (parseInt(editHours)||0)*60 + (parseInt(editMins)||0);
-    if (totalMins <= 0 || !editDesc.trim()) return;
+    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
+    if (!editDesc.trim()) return;
     onUpdate(entry.id, {
       description: editDesc.trim(),
       company_id: editCompany,
@@ -1490,7 +1497,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [meetingIndefinite, setMeetingIndefinite] = useState(true);
   const [editingMeeting, setEditingMeeting] = useState(null);
 
-  const todayEntries = entries.filter(e => e.user_id === currentUser.id).sort((a,b) => b.date.localeCompare(a.date)).slice(0,15);
+  const todayEntries = entries.filter(e => e.user_id === currentUser.id).sort((a,b) => b.date.localeCompare(a.date) || (b.created_at||'').localeCompare(a.created_at||'')).slice(0,30);
 
   // Get unique past descriptions for autocomplete
   const uniqueDescriptions = useMemo(() => {
@@ -1506,7 +1513,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const handleAddManual = () => {
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
-    if (totalMins <= 0) return;
+    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
     selCompanies.forEach(compId => {
       onAddManual(compId, desc, totalMins, date);
     });
@@ -1873,31 +1880,61 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
         </div>
       )}
 
-      {/* Recent entries */}
+      {/* Recent entries grouped by date with daily totals */}
       <div className="section-title">Moje záznamy</div>
       <div className="task-list">
-        {todayEntries.map(e => (
-          <EditableTaskItem
-            key={e.id} entry={e} companies={companies} users={users}
-            currentUser={currentUser} onUpdate={onUpdateEntry} onDelete={onDeleteEntry}
-            showUser={false} isLocked={isEntryLocked(e)}
-          />
-        ))}
+        {(() => {
+          const grouped = {};
+          todayEntries.forEach(e => {
+            if (!grouped[e.date]) grouped[e.date] = [];
+            grouped[e.date].push(e);
+          });
+          const sortedDates = Object.keys(grouped).sort((a,b) => b.localeCompare(a));
+          return sortedDates.map(date => {
+            const dayEntries = grouped[date];
+            const totalMins = dayEntries.reduce((sum, e) => sum + e.duration_min, 0);
+            const dayLabel = new Date(date + 'T12:00:00').toLocaleDateString('cs-CZ', {weekday:'long', day:'numeric', month:'numeric'});
+            return (
+              <div key={date}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0 4px',borderBottom:'1px solid var(--border)',marginBottom:4}}>
+                  <span style={{fontSize:13,fontWeight:600,color:'var(--text-secondary)',textTransform:'capitalize'}}>{dayLabel}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:'var(--primary)'}}>{formatHours(totalMins)}</span>
+                </div>
+                {dayEntries.map(e => (
+                  <EditableTaskItem
+                    key={e.id} entry={e} companies={companies} users={users}
+                    currentUser={currentUser} onUpdate={onUpdateEntry} onDelete={onDeleteEntry}
+                    showUser={false} isLocked={isEntryLocked(e)}
+                  />
+                ))}
+              </div>
+            );
+          });
+        })()}
       </div>
     </div>
   );
 }
 
 // ==================== REPORTS PAGE ====================
-function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, currentUser }) {
-  const [dateFrom, setDateFrom] = useState('2026-02-01');
-  const [dateTo, setDateTo] = useState('2026-02-28');
+function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, currentUser, approvalRequests, setApprovalRequests }) {
+  const [dateFrom, setDateFrom] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  });
+  const [dateTo, setDateTo] = useState(() => {
+    const now = new Date();
+    const last = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    return last.toISOString().slice(0,10);
+  });
   const [filterCompany, setFilterCompany] = useState('all');
   const [filterUser, setFilterUser] = useState('all');
   const [period, setPeriod] = useState('month');
   const [showInvoiceConfirm, setShowInvoiceConfirm] = useState(false);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false);
+  const [showApprovalSection, setShowApprovalSection] = useState(false);
   const [activeTab, setActiveTab] = useState('reports');
+  const myPendingApprovals = (approvalRequests||[]).filter(ar => ar.status === 'pending' && users.find(u => u.id === ar.user_id)?.manager_id === currentUser?.id);
   const [userFinalizations, setUserFinalizations] = useState({});
 
   // Check if current period is already locked
@@ -2504,7 +2541,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                               <span>{finalizedCount}/{usersWithEntries.length} pracovníků finalizovalo</span>
                             )}
                           </div>
-                          {currentUser?.is_admin && unfinalized.length > 0 && (
+                          {(currentUser?.is_admin || currentUser?.manager_id === null) && unfinalized.length > 0 && (
                             <button className="btn btn-outline btn-sm" style={{fontSize:11}} onClick={() => {
                               const trackerUrl = window.location.href;
                               const unfinalizedUsers = unfinalized.map(uid => users.find(u => u.id === uid)).filter(Boolean);
@@ -2562,6 +2599,71 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                             Schválit za všechny (admin)
                           </button>
                         )}
+
+                        {/* Manager approval section */}
+                        {(() => {
+                          const myRequest = (approvalRequests||[]).find(ar => ar.user_id === currentUser?.id && ar.period_from === dateFrom && ar.period_to === dateTo);
+                          const hasManager = currentUser?.manager_id;
+                          const managerName = hasManager ? users.find(u => u.id === currentUser.manager_id)?.name : null;
+                          const isFinalized = userFinalizations[periodKey + '_' + currentUser?.id];
+
+                          // Requests I need to review (as manager)
+                          const pendingForMe = (approvalRequests||[]).filter(ar => ar.status === 'pending' && ar.period_from === dateFrom && ar.period_to === dateTo && users.find(u => u.id === ar.user_id)?.manager_id === currentUser?.id);
+
+                          return (
+                            <div style={{marginTop:12}}>
+                              {/* Submit for approval (user with manager) */}
+                              {hasManager && isFinalized && !myRequest && (
+                                <button className="btn btn-primary btn-sm" style={{width:'100%',marginBottom:8}} onClick={async () => {
+                                  if (!window.__supabase) return;
+                                  const { data, error } = await window.__supabase.from('approval_requests').insert([{
+                                    user_id: currentUser.id, period_from: dateFrom, period_to: dateTo, status: 'pending'
+                                  }]).select();
+                                  if (!error && data?.[0]) setApprovalRequests(prev => [...prev, data[0]]);
+                                }}>
+                                  Odeslat ke schválení ({managerName})
+                                </button>
+                              )}
+                              {hasManager && myRequest && (
+                                <div style={{padding:8,borderRadius:8,fontSize:12,textAlign:'center',
+                                  background: myRequest.status==='approved'?'#f0fdf4': myRequest.status==='rejected'?'#fef2f2':'#fffbeb',
+                                  color: myRequest.status==='approved'?'var(--success)': myRequest.status==='rejected'?'var(--danger)':'#b45309',
+                                  fontWeight:600,marginBottom:8}}>
+                                  {myRequest.status==='pending' && 'Čeká na schválení manažerem'}
+                                  {myRequest.status==='approved' && 'Schváleno manažerem'}
+                                  {myRequest.status==='rejected' && ('Zamítnuto: ' + (myRequest.note || 'bez důvodu'))}
+                                </div>
+                              )}
+
+                              {/* Review section for managers */}
+                              {pendingForMe.length > 0 && (
+                                <div style={{marginTop:8,padding:12,background:'#fffbeb',borderRadius:8,border:'1px solid #fbbf24'}}>
+                                  <div style={{fontWeight:600,fontSize:13,marginBottom:8,color:'#b45309'}}>Ke schválení ({pendingForMe.length})</div>
+                                  {pendingForMe.map(ar => {
+                                    const arUser = users.find(u => u.id === ar.user_id);
+                                    return (
+                                      <div key={ar.id} style={{display:'flex',alignItems:'center',gap:8,padding:8,background:'white',borderRadius:6,marginBottom:6}}>
+                                        <span style={{flex:1,fontSize:13,fontWeight:500}}>{arUser?.name || 'Neznámý'}</span>
+                                        <button className="btn btn-sm" style={{background:'var(--success)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
+                                          if (!window.__supabase) return;
+                                          await window.__supabase.from('approval_requests').update({status:'approved',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id}).eq('id',ar.id);
+                                          setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'approved',reviewer_id:currentUser.id} : a));
+                                        }}>Schválit</button>
+                                        <button className="btn btn-sm" style={{background:'var(--danger)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
+                                          const note = prompt('Důvod zamítnutí:');
+                                          if (note === null) return;
+                                          if (!window.__supabase) return;
+                                          await window.__supabase.from('approval_requests').update({status:'rejected',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id,note}).eq('id',ar.id);
+                                          setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'rejected',reviewer_id:currentUser.id,note} : a));
+                                        }}>Zamítnout</button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()}
@@ -2569,7 +2671,17 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
               )}
 
               {/* Generate / Lock button */}
-              {!isPeriodLocked && !hasOverlappingLock && currentUser?.is_admin && (
+              {!isPeriodLocked && !hasOverlappingLock && currentUser?.is_admin && (() => {
+                const usersInPeriod = [...new Set(entries.filter(e => e.date >= dateFrom && e.date <= dateTo).map(e => e.user_id))];
+                const usersNeedingApproval = usersInPeriod.filter(uid => {
+                  const u = users.find(u2 => u2.id === uid);
+                  return u?.manager_id;
+                });
+                const allApproved = usersNeedingApproval.every(uid => 
+                  (approvalRequests||[]).some(ar => ar.user_id === uid && ar.period_from === dateFrom && ar.period_to === dateTo && ar.status === 'approved')
+                );
+                return allApproved;
+              })() && (
                 <div>
                   {showInvoiceConfirm ? (
                     <div className="card" style={{borderColor:'var(--danger)',background:'#fef2f2'}}>
@@ -2631,36 +2743,49 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
 // ==================== ADMIN PAGE ====================
 function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, setDiscountSchemes, retainers, setRetainers, recurringMeetings, setRecurringMeetings, currentUser }) {
-  const [tab, setTab] = useState('users');
+  const [tab, setTab] = useState('profile');
   const [editUser, setEditUser] = useState(null);
   const [editCompany, setEditCompany] = useState(null);
   const [editingScheme, setEditingScheme] = useState(null);
   const [retainerMonth, setRetainerMonth] = useState(currentMonthKey());
   const [editRetainer, setEditRetainer] = useState(null);
 
-  if (!currentUser?.is_admin) {
-    return <div style={{padding:20, textAlign:'center', color:'var(--text-secondary)'}}>Přístup pouze pro administrátory</div>;
-  }
+  const isAdmin = currentUser?.is_admin === true;
 
   const handleSaveUser = async (userData) => {
     if (window.__supabase && userData.id) {
-      await window.__supabase.from('profiles').update({
+      const updateData = {
         name: userData.name, email: userData.email, position: userData.position,
-        division: userData.division, hourly_rate: userData.hourly_rate, is_admin: userData.is_admin
-      }).eq('id', userData.id);
+        division: userData.division, hourly_rate: userData.hourly_rate,
+        manager_id: userData.manager_id || null
+      };
+      if (isAdmin) updateData.is_admin = userData.is_admin;
+      await window.__supabase.from('profiles').update(updateData).eq('id', userData.id);
     }
     setUsers(prev => prev.map(u => u.id === userData.id ? {...u, ...userData} : u));
+    if (userData.id === currentUser?.id) {
+      // Update currentUser if editing self
+    }
     setEditUser(null);
   };
 
   const handleSaveCompany = async (company) => {
-    if (window.__supabase && company.id) {
-      await window.__supabase.from('companies').update({
-        name: company.name, legal_name: company.legal_name, address: company.address,
-        ico: company.ico, dic: company.dic, is_vat_payer: company.is_vat_payer
-      }).eq('id', company.id);
+    const sb = window.__supabase;
+    if (!sb) return;
+    const compData = {
+      name: company.name, legal_name: company.legal_name, address: company.address,
+      ico: company.ico, dic: company.dic, is_vat_payer: company.is_vat_payer,
+      color: company.color || '#6366f1', is_active: company.is_active !== false
+    };
+    if (company.id) {
+      await sb.from('companies').update(compData).eq('id', company.id);
+      setCompanies(prev => prev.map(c => c.id === company.id ? {...c, ...compData} : c));
+    } else {
+      const { data: inserted, error } = await sb.from('companies').insert([compData]).select();
+      if (!error && inserted?.[0]) {
+        setCompanies(prev => [...prev, inserted[0]]);
+      }
     }
-    setCompanies(prev => prev.map(c => c.id === company.id ? company : c));
     setEditCompany(null);
   };
 
@@ -2711,12 +2836,35 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       <div className="section-title">Administrace</div>
 
       <div className="tabs">
-        <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Lidé</button>
+        <button className={`tab ${tab==='profile'?'active':''}`} onClick={()=>setTab('profile')}>Můj profil</button>
+        {isAdmin && <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Lidé</button>}
         <button className={`tab ${tab==='companies'?'active':''}`} onClick={()=>setTab('companies')}>Firmy</button>
-        <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>Slevová pásma</button>
+        {isAdmin && <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>Slevová pásma</button>}
       </div>
 
-      {tab === 'users' && (
+      {tab === 'profile' && currentUser && (
+        <div>
+          <div className="card" style={{marginBottom:16}}>
+            <h3 style={{marginBottom:12,fontSize:16}}>Můj profil</h3>
+            <div className="form-group">
+              <label className="form-label">Jméno</label>
+              <input className="input" value={currentUser.name||''} onChange={e=>setCurrentUser && setUsers(prev => { const updated = {...currentUser, name:e.target.value}; return prev.map(u=>u.id===currentUser.id?updated:u); })} disabled />
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Email</span><div style={{fontWeight:500}}>{currentUser.email}</div></div>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Pozice</span><div style={{fontWeight:500}}>{currentUser.position || '—'}</div></div>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Divize</span><div style={{fontWeight:500}}>{currentUser.division || '—'}</div></div>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Hodinová sazba</span><div style={{fontWeight:500}}>{currentUser.hourly_rate} Kč</div></div>
+              {currentUser.manager_id && <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Manažer</span><div style={{fontWeight:500}}>{users.find(u=>u.id===currentUser.manager_id)?.name || '—'}</div></div>}
+            </div>
+            <button className="btn btn-outline btn-sm" style={{marginTop:12}} onClick={() => setEditUser({...currentUser})}>
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span> Upravit profil
+            </button>
+          </div>
+        </div>
+      )}
+
+      {tab === 'users' && isAdmin && (
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditUser({id:'',name:'',email:'',position:'',division:'',hourly_rate:0,is_admin:false})}>
@@ -2749,6 +2897,11 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
 
       {tab === 'companies' && (
         <div>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+            <button className="btn btn-primary btn-sm" onClick={() => setEditCompany({id:'',name:'',legal_name:'',address:'',ico:'',dic:'',is_vat_payer:false,color:'#6366f1',is_active:true})}>
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat firmu
+            </button>
+          </div>
           <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
             <label className="form-label" style={{margin:0,whiteSpace:'nowrap'}}>Měsíc:</label>
             <input className="input" type="month" value={retainerMonth} onChange={e=>setRetainerMonth(e.target.value)} style={{flex:1,maxWidth:200}} />
@@ -2794,7 +2947,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                     <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.settings}</span>
                     </button>
-                    <button className="btn btn-outline btn-sm" onClick={() => setEditRetainer({
+                    {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => setEditRetainer({
                       company_id: c.id, company_name: c.name, month: retainerMonth,
                       payment_czk: ret ? ret.payment_czk : inheritedPayment,
                       rollover_czk: ret ? parseFloat(ret.rollover_czk||0) : 0,
@@ -2802,7 +2955,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                       existing_id: ret ? ret.id : null
                     })}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
-                    </button>
+                    </button>}
                   </div>
                 </div>
                 <div className="stats-row" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
@@ -2862,8 +3015,10 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
               <button className="btn btn-outline" onClick={()=>setEditRetainer(null)}>Zrušit</button>
               <button className="btn btn-primary" onClick={async () => {
-                if (window.__supabase) {
-                  const data = {
+                const sb = window.__supabase;
+                if (!sb) { alert('Supabase není připojeno'); return; }
+                try {
+                  const retData = {
                     company_id: editRetainer.company_id,
                     month: editRetainer.month,
                     payment_czk: editRetainer.payment_czk,
@@ -2871,21 +3026,23 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                     valid_from: editRetainer.valid_from || editRetainer.month
                   };
                   if (editRetainer.existing_id) {
-                    await window.__supabase.from('retainers').update(data).eq('id', editRetainer.existing_id);
-                    setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? {...r, ...data} : r));
+                    const { error } = await sb.from('retainers').update(retData).eq('id', editRetainer.existing_id);
+                    if (error) { console.error('Retainer update error:', error); alert('Chyba při ukládání: ' + error.message); return; }
+                    setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? {...r, ...retData, id: editRetainer.existing_id} : r));
                   } else {
-                    const { data: inserted } = await window.__supabase.from('retainers').insert([data]).select();
+                    const { data: inserted, error } = await sb.from('retainers').insert([retData]).select();
+                    if (error) { console.error('Retainer insert error:', error); alert('Chyba při ukládání: ' + error.message); return; }
                     if (inserted && inserted[0]) setRetainers(prev => [...prev, inserted[0]]);
                   }
-                }
-                setEditRetainer(null);
+                  setEditRetainer(null);
+                } catch(err) { console.error('Retainer save error:', err); alert('Chyba: ' + err.message); }
               }}>Uložit</button>
             </div>
           </div>
         </div>
       )}
 
-            {tab === 'tiers' && (
+            {tab === 'tiers' && isAdmin && (
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditingScheme({name:'',no_discount:false,companyIds:[],tiers:[{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
@@ -2982,11 +3139,20 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               <input className="input" type="number" value={editUser.hourly_rate} onChange={e=>setEditUser({...editUser, hourly_rate:parseInt(e.target.value)||0})} />
             </div>
             <div className="form-group">
+              <label className="form-label">Manažer (schvaluje report)</label>
+              <select className="input select" value={editUser.manager_id||''} onChange={e=>setEditUser({...editUser, manager_id:e.target.value||null})}>
+                <option value="">Žádný</option>
+                {users.filter(u => u.id !== editUser.id).map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            {isAdmin && <div className="form-group">
               <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
                 <input type="checkbox" checked={editUser.is_admin} onChange={e=>setEditUser({...editUser, is_admin:e.target.checked})} />
                 <span className="form-label" style={{margin:0}}>Administrátor</span>
               </label>
-            </div>
+            </div>}
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
               <button className="btn btn-outline" onClick={()=>setEditUser(null)}>Zrušit</button>
               <button className="btn btn-primary" onClick={()=>handleSaveUser(editUser)}>Uložit</button>
@@ -2999,7 +3165,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {editCompany && (
         <div className="modal-overlay" onClick={() => setEditCompany(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h2>Upravit firmu — {editCompany.name}</h2>
+            <h2>{editCompany.id ? 'Upravit firmu — ' + editCompany.name : 'Nová firma'}</h2>
             <div className="form-group">
               <label className="form-label">Název</label>
               <input className="input" value={editCompany.name||''} onChange={e=>setEditCompany({...editCompany, name:e.target.value})} />
@@ -3011,6 +3177,10 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             <div className="form-group">
               <label className="form-label">Adresa</label>
               <input className="input" value={editCompany.address||''} onChange={e=>setEditCompany({...editCompany, address:e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Barva</label>
+              <input className="input" type="color" value={editCompany.color||'#6366f1'} onChange={e=>setEditCompany({...editCompany, color:e.target.value})} style={{height:40,padding:4}} />
             </div>
             <div className="form-group">
               <label className="form-label">IČ</label>
