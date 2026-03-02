@@ -470,7 +470,7 @@ function App() {
       const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*').eq('is_active', true),
-        supabase.from('time_entries').select('*'),
+        supabase.from('time_entries').select('*').order('created_at', { ascending: false }),
         supabase.from('discount_schemes').select('*'),
         supabase.from('discount_scheme_companies').select('*'),
         supabase.from('discount_tiers').select('*'),
@@ -1272,7 +1272,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
       {/* Recent activity */}
       <div className="section-title" style={{marginTop:20}}>Poslední aktivita</div>
       <div className="task-list">
-        {entries.sort((a,b) => b.date.localeCompare(a.date) || (b.id||'').localeCompare(a.id||'')).slice(0,5).map(e => {
+        {[...entries].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,5).map(e => {
           const user = users.find(u=>u.id===e.user_id);
           const comp = companies.find(c=>c.id===e.company_id);
           return (
@@ -1297,7 +1297,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
 
   const month = currentMonthKey();
   const budget = getCompanyBudget(company.id, month);
-  const companyEntries = entries.filter(e => e.company_id === company.id).sort((a,b) => b.date.localeCompare(a.date) || (b.created_at||'').localeCompare(a.created_at||''));
+  const companyEntries = entries.filter(e => e.company_id === company.id).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
 
   const grouped = {};
   companyEntries.forEach(e => {
@@ -1530,7 +1530,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [meetingIndefinite, setMeetingIndefinite] = useState(true);
   const [editingMeeting, setEditingMeeting] = useState(null);
 
-  const todayEntries = entries.filter(e => e.user_id === currentUser.id).sort((a,b) => b.date.localeCompare(a.date) || (b.created_at||'').localeCompare(a.created_at||'')).slice(0,30);
+  const todayEntries = entries.filter(e => e.user_id === currentUser.id).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,30);
 
   // Get unique past descriptions for autocomplete
   const uniqueDescriptions = useMemo(() => {
