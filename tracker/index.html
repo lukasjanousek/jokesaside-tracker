@@ -733,8 +733,8 @@ function App() {
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
-            onAddManual={(compId, desc, mins, date) => {
-              addEntry({ user_id: currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+            onAddManual={(compId, desc, mins, date, userId) => {
+              addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
             }}
             currentUser={currentUser}
             recurringMeetings={recurringMeetings}
@@ -767,8 +767,8 @@ function App() {
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
-            onAddManual={(compId, desc, mins, date) => {
-              addEntry({ user_id: currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+            onAddManual={(compId, desc, mins, date, userId) => {
+              addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
             }}
             onDeleteEntry={deleteEntry}
             onUpdateEntry={updateEntry}
@@ -836,6 +836,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const [manualDate, setManualDate] = useState(new Date().toISOString().slice(0,10));
   const [dashTimeFrom, setDashTimeFrom] = useState('');
   const [dashTimeTo, setDashTimeTo] = useState('');
+  const [dashParticipants, setDashParticipants] = useState([]);
   const [showDashSuggestions, setShowDashSuggestions] = useState(false);
   const dashDescRef = useRef(null);
 
@@ -868,10 +869,13 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
     if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
-    quickCompanies.forEach(compId => {
-      onAddManual(compId, quickDesc, totalMins, manualDate);
+    const participantIds = dashParticipants.length > 0 ? dashParticipants : [currentUser.id];
+    participantIds.forEach(userId => {
+      quickCompanies.forEach(compId => {
+        onAddManual(compId, quickDesc, totalMins, manualDate, userId);
+      });
     });
-    setQuickDesc(''); setManualHours(''); setManualMins(''); setDashTimeFrom(''); setDashTimeTo('');
+    setQuickDesc(''); setManualHours(''); setManualMins(''); setDashTimeFrom(''); setDashTimeTo(''); setDashParticipants([]);
   };
 
   return (
@@ -915,6 +919,33 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               })}
             </div>
             {quickCompanies.length > 1 && <div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4,textAlign:'center'}}>{quickCompanies.length} firem vybráno — task se přidá ke všem</div>}
+            <div style={{marginBottom:8}}>
+              <label style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:3}}>Účastníci</label>
+              <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                {users.filter(u => u.is_active !== false).map(u => {
+                  const isSel = dashParticipants.includes(u.id);
+                  const isMe = u.id === currentUser.id;
+                  const autoMe = dashParticipants.length === 0 && isMe;
+                  return (
+                    <button key={u.id} style={{padding:'3px 8px',fontSize:11,borderRadius:12,border:'1px solid',cursor:'pointer',
+                      borderColor: isSel || autoMe ? 'var(--primary)' : 'var(--border)',
+                      background: isSel || autoMe ? 'var(--primary-light)' : 'var(--surface)',
+                      color: isSel || autoMe ? 'var(--primary)' : 'var(--text-secondary)',
+                      fontWeight: isSel || autoMe ? 600 : 400}}
+                      onClick={() => {
+                        if (dashParticipants.length === 0) {
+                          setDashParticipants(isSel ? [] : [currentUser.id, u.id].filter((v,i,a)=>a.indexOf(v)===i));
+                        } else {
+                          setDashParticipants(prev => isSel ? prev.filter(id=>id!==u.id) : [...prev, u.id]);
+                        }
+                      }}>
+                      {u.name.split(' ')[0]}{isMe ? ' (já)' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+              {dashParticipants.length > 1 && <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:2}}>{dashParticipants.length} účastníků</div>}
+            </div>
             <div style={{position:'relative',marginBottom:8}}>
               <input className="input" placeholder="Co jdeš dělat?" value={quickDesc}
                 ref={dashDescRef}
@@ -1481,6 +1512,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [timeFromStr, setTimeFromStr] = useState('');
   const [timeToStr, setTimeToStr] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0,10));
+  const [taskParticipants, setTaskParticipants] = useState([]);
   const [showDescSuggestions, setShowDescSuggestions] = useState(false);
   const [descInputRef, setDescInputRef] = useState(null);
 
@@ -1515,10 +1547,13 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
     if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
-    selCompanies.forEach(compId => {
-      onAddManual(compId, desc, totalMins, date);
+    const participantIds = taskParticipants.length > 0 ? taskParticipants : [currentUser.id];
+    participantIds.forEach(userId => {
+      selCompanies.forEach(compId => {
+        onAddManual(compId, desc, totalMins, date, userId);
+      });
     });
-    setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr('');
+    setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr(''); setTaskParticipants([]);
   };
 
   return (
