@@ -1,5 +1,935 @@
 <!DOCTYPE html>
-<html>
-<head><meta http-equiv="refresh" content="0;url=/tracker" /></head>
-<body>Přesměrování...</body>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jokes Aside — Sdílené služby pro růst vašeho byznysu</title>
+<meta name="description" content="Finance, Legal, HR a Marketing pod jednou střechou. Jokes Aside poskytuje profesionální back-office služby firmám, které chtějí růst bez zbytečné režie.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111'/%3E%3Ctext x='32' y='44' font-family='system-ui' font-weight='900' font-size='30' fill='%23FFE500' text-anchor='middle'%3EJA%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-50: #fafafa;
+  --gray-100: #f4f4f5;
+  --gray-200: #e4e4e7;
+  --gray-400: #a1a1aa;
+  --gray-500: #71717a;
+  --gray-600: #52525b;
+  --gray-800: #27272a;
+  --gray-900: #18181b;
+  --yellow: #FFE500;
+  --yellow-dark: #E6CE00;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--white);
+  background: var(--black);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 20px 0;
+  transition: all 0.3s ease;
+}
+
+nav.scrolled {
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+nav .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-decoration: none;
+  color: var(--white);
+}
+
+.logo span { color: var(--yellow); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--gray-400);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--white); }
+
+.nav-cta {
+  background: var(--yellow) !important;
+  color: var(--black) !important;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  transition: transform 0.2s, background 0.2s !important;
+}
+
+.nav-cta:hover {
+  background: var(--yellow-dark) !important;
+  transform: translateY(-1px);
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255,229,0,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-content {
+  max-width: 800px;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: clamp(42px, 7vw, 80px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 28px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--yellow);
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--gray-400);
+  max-width: 560px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--yellow);
+  color: var(--black);
+  padding: 16px 32px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: var(--yellow-dark);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--white);
+  padding: 16px 32px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--gray-800);
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  border-color: var(--gray-600);
+  background: rgba(255,255,255,0.03);
+}
+
+/* SERVICES */
+.services {
+  padding: 120px 0;
+  background: var(--black);
+}
+
+.section-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+}
+
+.section-subtitle {
+  font-size: 17px;
+  color: var(--gray-400);
+  max-width: 600px;
+  line-height: 1.7;
+  margin-bottom: 64px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.service-card {
+  background: var(--gray-900);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 40px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--yellow);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover::before { transform: scaleX(1); }
+.service-card:hover { border-color: rgba(255,229,0,0.15); }
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255,229,0,0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.service-card h3 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.service-card p {
+  font-size: 15px;
+  color: var(--gray-400);
+  line-height: 1.7;
+}
+
+/* HOW IT WORKS */
+.how {
+  padding: 120px 0;
+  background: var(--gray-50);
+  color: var(--black);
+}
+
+.how .section-title { color: var(--black); }
+.how .section-subtitle { color: var(--gray-600); }
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.how-step {
+  text-align: center;
+}
+
+.step-num {
+  width: 56px;
+  height: 56px;
+  background: var(--black);
+  color: var(--yellow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 auto 20px;
+}
+
+.how-step h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.how-step p {
+  font-size: 15px;
+  color: var(--gray-500);
+  line-height: 1.7;
+}
+
+/* REFERENCES */
+.references {
+  padding: 120px 0;
+  background: var(--gray-50);
+  color: var(--black);
+}
+
+.references .section-title { color: var(--black); }
+.references .section-subtitle { color: var(--gray-600); }
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.ref-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 32px 36px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  align-items: start;
+  transition: all 0.3s ease;
+}
+
+.ref-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+  border-color: var(--gray-200);
+}
+
+.ref-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ref-logo {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.ref-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.5;
+}
+
+.ref-right {}
+
+.ref-right p {
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.ref-services-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+
+.ref-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ref-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
+}
+
+/* TEAM */
+.team {
+  padding: 120px 0;
+  background: var(--gray-50);
+  color: var(--black);
+}
+
+.team .section-title { color: var(--black); }
+.team .section-subtitle { color: var(--gray-600); }
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.team-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  border: 1px solid var(--gray-200);
+  transition: all 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+}
+
+.team-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.team-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.team-role {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-bottom: 2px;
+}
+
+.team-division {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--yellow-dark);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* CONTACT */
+.contact {
+  padding: 120px 0;
+  background: var(--black);
+  text-align: center;
+}
+
+.contact-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--gray-900);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 56px 48px;
+}
+
+.contact-card h2 {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.contact-card > p {
+  color: var(--gray-400);
+  font-size: 16px;
+  margin-bottom: 36px;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.contact-row .icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,229,0,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-row a {
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact-row a:hover { color: var(--yellow); }
+
+/* FOOTER */
+footer {
+  padding: 32px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+
+footer p {
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+footer a {
+  color: var(--gray-400);
+  text-decoration: none;
+}
+
+footer a:hover { color: var(--yellow); }
+
+/* ANIMATIONS */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .how-grid { grid-template-columns: 1fr; gap: 32px; }
+  .ref-card { grid-template-columns: 1fr; gap: 16px; }
+  .team-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .mobile-toggle { display: block; }
+
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10,10,10,0.97);
+    backdrop-filter: blur(20px);
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    z-index: 99;
+  }
+
+  .nav-links.open a {
+    font-size: 24px;
+    color: var(--white);
+  }
+
+  .hero { padding: 100px 0 60px; }
+  .service-card { padding: 28px; }
+  .contact-card { padding: 36px 24px; }
+  .ref-card { padding: 24px; }
+}
+
+@media (max-width: 500px) {
+  .hero-buttons { flex-direction: column; }
+  .hero-buttons .btn-primary,
+  .hero-buttons .btn-outline { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="container">
+    <a href="#" class="logo">jokes<span>aside</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#sluzby">Služby</a></li>
+      <li><a href="#jak">Jak to funguje</a></li>
+      <li><a href="#reference">Reference</a></li>
+      <li><a href="#tym">Tým</a></li>
+      <li><a href="#kontakt" class="nav-cta">Kontakt</a></li>
+    </ul>
+    <button class="mobile-toggle" id="mobileToggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content fade-up">
+      <div class="hero-tag">Sdílené služby pro ambiciózní firmy</div>
+      <h1>Váš back-office.<br><em>Naše starost.</em></h1>
+      <p>Finance, právo, HR a marketing pod jednou střechou. Přestaňte řešit režii a soustřeďte se na to, co děláte nejlépe — budování svého byznysu.</p>
+      <div class="hero-buttons">
+        <a href="#kontakt" class="btn-primary">Spojte se s námi →</a>
+        <a href="#sluzby" class="btn-outline">Naše služby</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="sluzby">
+  <div class="container">
+    <div class="fade-up">
+      <div class="section-tag">Co děláme</div>
+      <h2 class="section-title">Čtyři pilíře,<br>jeden tým.</h2>
+      <p class="section-subtitle">Kompletní back-office podpora od profesionálů, kteří rozumí dynamice rostoucích firem.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card fade-up">
+        <div class="service-icon">📊</div>
+        <h3>Finance</h3>
+        <p>Účetnictví, controlling, finanční plánování a reporting. Přehled o číslech bez nutnosti budovat vlastní finanční tým. Od cash-flow managementu po přípravu podkladů pro investory.</p>
+      </div>
+      <div class="service-card fade-up">
+        <div class="service-icon">⚖️</div>
+        <h3>Legal</h3>
+        <p>Smluvní agenda, korporátní právo, compliance a ochrana duševního vlastnictví. Právní podpora šitá na míru startupům i zavedeným firmám bez zbytečné byrokracie.</p>
+      </div>
+      <div class="service-card fade-up">
+        <div class="service-icon">👥</div>
+        <h3>HR & Operations</h3>
+        <p>Nábor, onboarding, mzdová agenda a interní procesy. Pomůžeme vám vybudovat tým a nastavit operace, které škálují s vaším růstem.</p>
+      </div>
+      <div class="service-card fade-up">
+        <div class="service-icon">📣</div>
+        <h3>Marketing</h3>
+        <p>Strategie, brand, digitální marketing a komunikace. Od positioning a obsahové strategie po exekuci kampaní napříč kanály.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="jak">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <div class="section-tag">Jak to funguje</div>
+      <h2 class="section-title">Jednoduše<br>a transparentně.</h2>
+      <p class="section-subtitle" style="margin:0 auto 64px">Žádné skryté poplatky. Platíte měsíční retainer a čerpáte kredit podle potřeby.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-step fade-up">
+        <div class="step-num">1</div>
+        <h3>Domluvíme rozsah</h3>
+        <p>Zmapujeme vaše potřeby a navrhneme, které služby dávají smysl. Žádný one-size-fits-all — řešení šijeme na míru.</p>
+      </div>
+      <div class="how-step fade-up">
+        <div class="step-num">2</div>
+        <h3>Nastavíme retainer</h3>
+        <p>Zvolíte měsíční objem, ze kterého čerpáte kredit. Čím vyšší retainer, tím výhodnější sazba díky slevovým pásmům.</p>
+      </div>
+      <div class="how-step fade-up">
+        <div class="step-num">3</div>
+        <h3>Pracujeme & reportujeme</h3>
+        <p>Náš tým začne pracovat. Přes transparentní time tracker sledujete čerpání v reálném čase. Nevyčerpaný kredit se přenáší.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section class="references" id="reference">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <div class="section-tag">Reference</div>
+      <h2 class="section-title">Firmy, které nám<br>důvěřují.</h2>
+      <p class="section-subtitle" style="margin:0 auto 48px">Pracujeme s firmami od raných startupů po zavedené značky. Tady je výběr toho, co pro ně děláme.</p>
+    </div>
+    <div class="ref-grid">
+
+      <div class="ref-card fade-up">
+        <div class="ref-left">
+          <div class="ref-logo" style="color:#22c55e">Campiri</div>
+          <div class="ref-desc">Online platforma zprostředkující pronájem obytných vozů a karavanů od půjčoven a soukromých majitelů.</div>
+        </div>
+        <div class="ref-right">
+          <div class="ref-services-label">Naše služby</div>
+          <div class="ref-tags">
+            <span class="ref-tag">Finance & controlling</span>
+            <span class="ref-tag">Smluvní agenda</span>
+            <span class="ref-tag">HR & nábor</span>
+            <span class="ref-tag">Marketing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ref-card fade-up">
+        <div class="ref-left">
+          <div class="ref-logo" style="color:#f97316">Nomiverse</div>
+          <div class="ref-desc">Venture builder studio a platforma pro foundery, kteří chtějí víc než jen investici.</div>
+        </div>
+        <div class="ref-right">
+          <div class="ref-services-label">Naše služby</div>
+          <div class="ref-tags">
+            <span class="ref-tag">Finance & reporting</span>
+            <span class="ref-tag">Korporátní právo</span>
+            <span class="ref-tag">Back office</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ref-card fade-up">
+        <div class="ref-left">
+          <div class="ref-logo" style="color:#8b5cf6">Iguana Technology</div>
+          <div class="ref-desc">Dev a product studio se specializací na online marketplaces a SaaS řešení pro klienty v Evropě a USA.</div>
+        </div>
+        <div class="ref-right">
+          <div class="ref-services-label">Naše služby</div>
+          <div class="ref-tags">
+            <span class="ref-tag">Účetnictví</span>
+            <span class="ref-tag">Legal & compliance</span>
+            <span class="ref-tag">Mzdová agenda</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ref-card fade-up">
+        <div class="ref-left">
+          <div class="ref-logo" style="color:#3b82f6">Dokempu</div>
+          <div class="ref-desc">Největší online průvodce po kempech v ČR s 20letou tradicí.</div>
+        </div>
+        <div class="ref-right">
+          <div class="ref-services-label">Naše služby</div>
+          <div class="ref-tags">
+            <span class="ref-tag">Finance</span>
+            <span class="ref-tag">Obsahový marketing</span>
+            <span class="ref-tag">Právní podpora</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ref-card fade-up">
+        <div class="ref-left">
+          <div class="ref-logo" style="color:#eab308">Nomivans</div>
+          <div class="ref-desc">Moderní servis, prodej a půjčovna obytných vozů, karavanů a campervanů.</div>
+        </div>
+        <div class="ref-right">
+          <div class="ref-services-label">Naše služby</div>
+          <div class="ref-tags">
+            <span class="ref-tag">Účetnictví & daně</span>
+            <span class="ref-tag">HR & operations</span>
+            <span class="ref-tag">Digitální marketing</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="team" id="tym">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <div class="section-tag">Tým</div>
+      <h2 class="section-title">Lidi, na které<br>se můžete spolehnout.</h2>
+      <p class="section-subtitle" style="margin:0 auto 64px">Malý tým seniorních specialistů. Žádní junioři, žádné delegování — pracujete přímo s experty.</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#6366f1">L</div>
+        <h3>Lukáš Janoušek</h3>
+        <div class="team-role">CEO</div>
+        <div class="team-division">Management</div>
+      </div>
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#f97316">V</div>
+        <h3>Vladimír Prchlík</h3>
+        <div class="team-role">CFO</div>
+        <div class="team-division">Finance</div>
+      </div>
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#8b5cf6">H</div>
+        <h3>Hana Pultznerová</h3>
+        <div class="team-role">Senior Legal Counsel</div>
+        <div class="team-division">Legal</div>
+      </div>
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#ec4899">M</div>
+        <h3>Markéta Brabcová</h3>
+        <div class="team-role">Head of HR & Ops</div>
+        <div class="team-division">Operations / HR</div>
+      </div>
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#22c55e">O</div>
+        <h3>Ondřej Synčák</h3>
+        <div class="team-role">Marketing Manager</div>
+        <div class="team-division">Marketing</div>
+      </div>
+      <div class="team-card fade-up">
+        <div class="team-avatar" style="background:#06b6d4">V</div>
+        <h3>Veronika Perglová</h3>
+        <div class="team-role">Back Office Coordinator</div>
+        <div class="team-division">Operations / HR</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="kontakt">
+  <div class="container">
+    <div class="fade-up">
+      <div class="contact-card">
+        <h2>Pojďme si promluvit.</h2>
+        <p>Rádi vám ukážeme, jak můžeme pomoct vašemu byznysu růst — bez zbytečné režie.</p>
+        <div class="contact-info">
+          <div class="contact-row">
+            <div class="icon">✉️</div>
+            <a href="mailto:lukas@jokesaside.cz">lukas@jokesaside.cz</a>
+          </div>
+          <div class="contact-row">
+            <div class="icon">📍</div>
+            <span>Štefánikova 43a, 150 00 Praha 5 — Smíchov</span>
+          </div>
+        </div>
+        <a href="mailto:lukas@jokesaside.cz" class="btn-primary" style="display:inline-flex">Napište nám →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>© 2026 Jokes Aside s.r.o. · <a href="/tracker">Time Tracker</a></p>
+  </div>
+</footer>
+
+<script>
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Close mobile nav on link click
+document.querySelectorAll('#navLinks a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+</script>
+
+</body>
 </html>
