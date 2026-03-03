@@ -1663,9 +1663,9 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                   }
                 }} style={{flex:1,fontSize:13,minWidth:70}} />
                 <span style={{fontSize:12,color:'var(--text-secondary)',margin:'0 2px'}}>=</span>
-                <input className="input time-input" type="number" min="0" placeholder="0" value={hours} onChange={e=>{setHours(e.target.value);setTimeFromStr('');setTimeToStr('');}} style={{width:36}} />
+                <input className="input time-input" type="number" min="0" placeholder="0" value={hours} onChange={e=>{setHours(e.target.value);setTimeFromStr('');setTimeToStr('');}} style={{width:48}} />
                 <span style={{fontSize:12,color:'var(--text-secondary)'}}>h</span>
-                <input className="input time-input" type="number" min="0" max="59" placeholder="0" value={mins} onChange={e=>{setMins(e.target.value);setTimeFromStr('');setTimeToStr('');}} style={{width:36}} />
+                <input className="input time-input" type="number" min="0" max="59" placeholder="0" value={mins} onChange={e=>{setMins(e.target.value);setTimeFromStr('');setTimeToStr('');}} style={{width:48}} />
                 <span style={{fontSize:12,color:'var(--text-secondary)'}}>m</span>
               </div>
 
