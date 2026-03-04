@@ -475,7 +475,7 @@ function App() {
         supabase.from('discount_schemes').select('*'),
         supabase.from('discount_scheme_companies').select('*'),
         supabase.from('discount_tiers').select('*'),
-        supabase.from('recurring_meetings').select('*').eq('is_active', true),
+        supabase.from('recurring_meetings').select('*'),
         supabase.from('billing_locks').select('*'),
         supabase.from('retainers').select('*'),
         supabase.from('approval_requests').select('*'),
@@ -493,19 +493,28 @@ function App() {
         }));
         setDiscountSchemes(schemes);
       }
-      if (meetingsRes.data) setRecurringMeetings(meetingsRes.data.map(m => ({
-        ...m,
-        companyIds: m.company_ids || m.companyIds || [],
-        participantIds: m.participant_ids || m.participantIds || [],
-        confirmedParticipantIds: m.confirmed_participant_ids || m.confirmedParticipantIds || [],
-        authorId: m.author_id || m.authorId,
-        dayOfWeek: m.day_of_week ?? m.dayOfWeek ?? 0,
-        dayOfMonth: m.day_of_month ?? m.dayOfMonth ?? 1,
-        durationMin: m.duration_min || m.durationMin || 60,
-        startDate: m.start_date || m.startDate,
-        endDate: m.end_date || m.endDate,
-        isActive: m.is_active ?? m.isActive ?? true,
-      })));
+      console.log('[Meetings] raw response:', JSON.stringify(meetingsRes));
+      if (meetingsRes.error) console.error('[Meetings] DB error:', meetingsRes.error);
+      if (meetingsRes.data && meetingsRes.data.length > 0) {
+        const normalized = meetingsRes.data.map(m => ({
+          ...m,
+          companyIds: m.company_ids || m.companyIds || [],
+          participantIds: m.participant_ids || m.participantIds || [],
+          confirmedParticipantIds: m.confirmed_participant_ids || m.confirmedParticipantIds || [],
+          authorId: m.author_id || m.authorId,
+          dayOfWeek: m.day_of_week ?? m.dayOfWeek ?? 0,
+          dayOfMonth: m.day_of_month ?? m.dayOfMonth ?? 1,
+          durationMin: m.duration_min || m.durationMin || 60,
+          startDate: m.start_date || m.startDate,
+          endDate: m.end_date || m.endDate,
+          isActive: m.is_active ?? m.isActive ?? true,
+        }));
+        console.log('[Meetings] normalized:', JSON.stringify(normalized));
+        setRecurringMeetings(normalized);
+      } else if (meetingsRes.data) {
+        console.log('[Meetings] empty array from DB');
+        setRecurringMeetings([]);
+      }
       if (locksRes.data) setBillingLocks(locksRes.data);
       if (retainersRes.data) setRetainers(retainersRes.data);
       if (approvalRes && approvalRes.data) setApprovalRequests(approvalRes.data);
@@ -1332,13 +1341,13 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
       </div>
 
       {/* Active recurring meetings summary */}
-      {recurringMeetings.filter(m => (m.isActive ?? m.is_active) && (m.participantIds || m.participant_ids || []).includes(currentUser?.id)).length > 0 && (
-        <div style={{marginTop:20}}>
-          <div className="section-title">Aktivní pravidelné meetingy</div>
+      <div style={{marginTop:20}}>
+        <div className="section-title">Pravidelné meetingy ({recurringMeetings.length} celkem)</div>
+        {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).length > 0 ? (
           <div className="task-list">
-            {recurringMeetings.filter(m => (m.isActive ?? m.is_active) && (m.participantIds || m.participant_ids || []).includes(currentUser?.id)).map(m => {
+            {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).map(m => {
               const compIds = m.companyIds || m.company_ids || [];
-              const compNames = compIds.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ');
+              const compNames = compIds.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ') || 'bez firmy';
               const freqLabel = m.frequency === 'daily' ? 'Denně' : m.frequency === 'weekly' ? 'Týdně' : 'Měsíčně';
               const dur = m.durationMin || m.duration_min || 60;
               return (
@@ -1346,14 +1355,16 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                   <div className="task-dot" style={{background:'var(--primary)'}} />
                   <div className="task-info">
                     <div className="task-desc">🔄 {m.description}</div>
-                    <div className="task-meta">{freqLabel} · {compNames} · {dur < 60 ? dur + ' min' : (dur/60) + ' hod'} na firmu</div>
+                    <div className="task-meta">{freqLabel} · {compNames} · {dur < 60 ? dur + ' min' : (dur/60) + ' hod'}</div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div style={{fontSize:13, color:'var(--text-secondary)', padding:'8px 0'}}>Žádné pravidelné meetingy. Vytvořte je v záložce Meetingy nebo v sekci výše.</div>
+        )}
+      </div>
 
       {/* Recent activity */}
       <div className="section-title" style={{marginTop:20}}>Poslední aktivita</div>
