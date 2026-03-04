@@ -855,9 +855,9 @@ function App() {
           {Icons.clock}
           <span>Tracking</span>
         </button>
-        <button className={`nav-item ${page === 'meetings' ? 'active' : ''}`} onClick={() => navTo('meetings')} title="Meetingy">
+        <button className={`nav-item ${page === 'meetings' ? 'active' : ''}`} onClick={() => navTo('meetings')} title="Opakované">
           {Icons.users}
-          <span>Meetingy</span>
+          <span>Opakované</span>
         </button>
         <button className={`nav-item ${page === 'reports' ? 'active' : ''}`} onClick={() => navTo('reports')} title="Reports">
           {Icons.chart}
@@ -947,7 +947,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 Nový task
               </button>
               <button onClick={()=>setDashMode('meeting')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'0 8px 8px 0',background:dashMode==='meeting'?'var(--primary)':'var(--surface)',color:dashMode==='meeting'?'white':'var(--text-secondary)',cursor:'pointer'}}>
-                Pravidelný meeting
+                Opakovaný task
               </button>
             </div>
             {dashMode === 'task' && (
@@ -1052,7 +1052,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
             <div>
               <div style={{marginBottom:12}}>
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis</label>
-                <input className="input" placeholder="Název meetingu" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
+                <input className="input" placeholder="Název opakovaného tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
               </div>
 
               <div style={{marginBottom:12}}>
@@ -1175,12 +1175,12 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                       const { data, error } = await sb.from('recurring_meetings').insert([meetingData]).select();
                       console.log('[Meeting Save] Result:', JSON.stringify({data, error}));
                       if (error) throw error;
-                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); alert('Meeting uložen!'); }
+                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); alert('Task uložen!'); }
                     } else {
                       const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                       setRecurringMeetings([...recurringMeetings, newMeeting]);
                     }
-                  } catch(err) { console.error('[Meeting Save] Error:', err); alert('Chyba při ukládání meetingu: ' + err.message); }
+                  } catch(err) { console.error('[Meeting Save] Error:', err); alert('Chyba při ukládání:' + err.message); }
                 })();
 
                 // Send email notification
@@ -1194,7 +1194,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                   const subject = encodeURIComponent('Jokes Aside – Pozvánka na pravidelný meeting: ' + meetingDesc);
                   const body = encodeURIComponent(
                     'Dobrý den,\n\n' +
-                    'byli jste přidáni do pravidelného meetingu "' + meetingDesc + '".\n\n' +
+                    'byli jste přidáni do opakovaného tasku "' + meetingDesc + '".\n\n' +
                     'Frekvence: ' + freqLabel + '\n' +
                     'Délka: ' + durationLabel + ' na firmu\n' +
                     'Firmy: ' + companyNames + '\n\n' +
@@ -1255,7 +1255,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
       {/* Recurring Meetings */}
       {recurringMeetings.filter(m => m.isActive).length > 0 && (
         <div style={{marginBottom:16}}>
-          <div className="section-title">Pravidelné meetingy</div>
+          <div className="section-title">Opakované tasky</div>
           {recurringMeetings.filter(m => m.isActive).map(m => {
             const companyNames = m.companyIds.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ');
             const participantNames = m.participantIds.map(uid => users.find(u => u.id === uid)?.name).filter(Boolean).join(', ');
@@ -1344,7 +1344,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
 
       {/* Active recurring meetings summary */}
       <div style={{marginTop:20}}>
-        <div className="section-title">Pravidelné meetingy ({recurringMeetings.length} celkem)</div>
+        <div className="section-title">Opakované tasky ({recurringMeetings.length} celkem)</div>
         {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).length > 0 ? (
           <div className="task-list">
             {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).map(m => {
@@ -1364,7 +1364,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
             })}
           </div>
         ) : (
-          <div style={{fontSize:13, color:'var(--text-secondary)', padding:'8px 0'}}>Žádné pravidelné meetingy. Vytvořte je v záložce Meetingy nebo v sekci výše.</div>
+          <div style={{fontSize:13, color:'var(--text-secondary)', padding:'8px 0'}}>Žádné opakované tasky. Vytvořte je v záložce Opakované nebo v sekci výše.</div>
         )}
       </div>
 
@@ -1484,7 +1484,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
         return isActive && compIds.includes(company.id);
       }).length > 0 && (
         <div className="card" style={{marginBottom:16}}>
-          <div className="section-title">Pravidelné meetingy</div>
+          <div className="section-title">Opakované tasky</div>
           {(recurringMeetings || []).filter(m => {
             const isActive = m.isActive ?? m.is_active;
             const compIds = m.companyIds || m.company_ids || [];
@@ -1716,7 +1716,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               Nový task
             </button>
             <button onClick={()=>setTrackMode('meeting')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'0 8px 8px 0',background:trackMode==='meeting'?'var(--primary)':'var(--surface)',color:trackMode==='meeting'?'white':'var(--text-secondary)',cursor:'pointer'}}>
-              Pravidelný meeting
+              Opakovaný task
             </button>
           </div>
 
@@ -1816,7 +1816,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           <div>
             <div style={{marginBottom:12}}>
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis</label>
-              <input className="input" placeholder="Název meetingu" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
+              <input className="input" placeholder="Název opakovaného tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
             </div>
 
             <div style={{marginBottom:12}}>
@@ -1942,7 +1942,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                     const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                     setRecurringMeetings([...recurringMeetings, newMeeting]);
                   }
-                } catch(err) { console.error('Error saving meeting:', err); alert('Chyba při ukládání meetingu: ' + err.message); }
+                } catch(err) { console.error('Error saving meeting:', err); alert('Chyba při ukládání:' + err.message); }
               })();
 
               // Send email notification
@@ -1956,7 +1956,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                 const subject = encodeURIComponent('Jokes Aside – Pozvánka na pravidelný meeting: ' + meetingDesc);
                 const body = encodeURIComponent(
                   'Dobrý den,\n\n' +
-                  'byli jste přidáni do pravidelného meetingu "' + meetingDesc + '".\n\n' +
+                  'byli jste přidáni do opakovaného tasku "' + meetingDesc + '".\n\n' +
                   'Frekvence: ' + freqLabel + '\n' +
                   'Délka: ' + durationLabel + ' na firmu\n' +
                   'Firmy: ' + companyNames + '\n\n' +
@@ -2016,7 +2016,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
       {/* Recurring Meetings list */}
       {recurringMeetings && recurringMeetings.filter(m => m.isActive).length > 0 && (
         <div style={{marginBottom:16}}>
-          <div className="section-title">Pravidelné meetingy</div>
+          <div className="section-title">Opakované tasky</div>
           {recurringMeetings.filter(m => m.isActive).map(m => {
             const companyNames = m.companyIds.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ');
             const participantNames = m.participantIds.map(uid => users.find(u => u.id === uid)?.name).filter(Boolean).join(', ');
@@ -3192,9 +3192,9 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <div className="section-title" style={{margin:0}}>Pravidelné meetingy</div>
+        <div className="section-title" style={{margin:0}}>Opakované tasky</div>
         <button className="btn btn-primary" style={{padding:'8px 16px',fontSize:13}} onClick={()=>setShowNew(!showNew)}>
-          {showNew ? 'Zrušit' : '+ Nový meeting'}
+          {showNew ? 'Zrušit' : '+ Nový task'}
         </button>
       </div>
 
@@ -3203,7 +3203,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
           <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>Nový pravidelný meeting</div>
           <div style={{marginBottom:10}}>
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Popis</label>
-            <input className="input" value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Název meetingu" style={{width:'100%'}} />
+            <input className="input" value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Název opakovaného tasku" style={{width:'100%'}} />
           </div>
           <div style={{marginBottom:10}}>
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Firmy</label>
@@ -3268,7 +3268,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
 
       {activeMeetings.length === 0 && !showNew && (
         <div className="card" style={{padding:32,textAlign:'center',color:'var(--text-secondary)'}}>
-          Zatím nemáte žádné pravidelné meetingy. Klikněte na "+ Nový meeting" pro vytvoření.
+          Zatím nemáte žádné opakované tasky. Klikněte na "+ Nový task" pro vytvoření.
         </div>
       )}
 
@@ -3506,7 +3506,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                     <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.settings}</span>
                     </button>
-                    {isAdmin && <button className="btn btn-outline btn-sm" style={{color:'var(--danger)',borderColor:'var(--danger)'}} onClick={async () => {
+                    {isAdmin && currentUser?.email === 'lukas.janousek@gmail.com' && <button className="btn btn-outline btn-sm" style={{color:'var(--danger)',borderColor:'var(--danger)'}} onClick={async () => {
                       if (!confirm('Opravdu chcete smazat firmu "' + c.name + '"? Tato akce je nevratná.')) return;
                       try {
                         const sb = window.__supabase;
