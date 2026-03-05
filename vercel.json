@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/tracker", "destination": "/tracker/index.html" }
+    {
+      "source": "/tracker",
+      "destination": "/tracker/index.html"
+    },
+    {
+      "source": "/tasks",
+      "destination": "/tasks/index.html"
+    }
   ]
 }

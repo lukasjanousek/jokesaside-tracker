@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jokes Aside — Klientský portál</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%236366f1'/%3E%3Ctext x='32' y='40' font-size='28' text-anchor='middle' fill='white' font-family='Arial'%3EJA%3C/text%3E%3C/svg%3E" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f8f9fb; --surface: #ffffff; --border: #e5e7eb; --text: #1a1a2e;
+  --text-secondary: #6b7280; --primary: #4f46e5; --primary-light: #eef2ff;
+  --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+  --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+}
+html { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+body { min-height: 100dvh; }
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; border: none; background: none; }
+
+.app { display: flex; flex-direction: column; min-height: 100dvh; max-width: 640px; margin: 0 auto; }
+.header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; }
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.header-logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+.header-title { font-size: 16px; font-weight: 700; }
+.header-subtitle { font-size: 11px; color: var(--text-secondary); }
+
+.content { flex: 1; padding: 16px 20px; padding-bottom: 100px; }
+
+.card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+
+.input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--surface); transition: border-color 0.2s; outline: none; }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+textarea.input { min-height: 80px; resize: vertical; }
+select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+.btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #4338ca; }
+.btn-outline { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+.btn-outline:hover { background: var(--bg); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+
+.label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+
+.badge { display: inline-flex; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-zadano { background: #dbeafe; color: #1d4ed8; }
+.badge-pracuje_se { background: #fef3c7; color: #b45309; }
+.badge-hotovo { background: #d1fae5; color: #047857; }
+.badge-low { background: #f3f4f6; color: #6b7280; }
+.badge-medium { background: #fef3c7; color: #b45309; }
+.badge-high { background: #fee2e2; color: #dc2626; }
+
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.priority-low { background: #9ca3af; }
+.priority-medium { background: #f59e0b; }
+.priority-high { background: #ef4444; }
+
+.task-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 8px; box-shadow: var(--shadow); transition: border-color 0.2s; }
+.task-card:hover { border-color: var(--primary); }
+.task-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.task-card-title { font-size: 14px; font-weight: 600; flex: 1; }
+.task-card-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+
+.login-container { max-width: 400px; margin: 80px auto; padding: 0 20px; }
+.login-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 32px; box-shadow: var(--shadow-lg); }
+.login-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+.login-subtitle { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+
+.nav-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+.nav-tab { padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.form-row > * { flex: 1; }
+
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal { background: var(--surface); border-radius: var(--radius); padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+@media (max-width: 480px) {
+  .form-row { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ==================== SUPABASE ====================
+const SUPABASE_URL = 'https://zsuqgsqgcxbiueupjaoe.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzdXFnc3FnY3hiaXVldXBqYW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDYyOTQsImV4cCI6MjA4NzY4MjI5NH0.ClUgxU7t_I8gQw-4MptEVxJw-FcpCvxjOl-66MIcQuE';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DIVISIONS = ['Finance', 'Legal', 'Operations/HR', 'Marketing'];
+const PRIORITIES = [
+  { value: 'low', label: 'Nízká', color: '#9ca3af' },
+  { value: 'medium', label: 'Střední', color: '#f59e0b' },
+  { value: 'high', label: 'Vysoká', color: '#ef4444' },
+];
+const STATUSES = {
+  zadano: { label: 'Zadáno', class: 'badge-zadano' },
+  pracuje_se: { label: 'Pracuje se', class: 'badge-pracuje_se' },
+  hotovo: { label: 'Hotovo', class: 'badge-hotovo' },
+};
+
+// ==================== MAIN APP ====================
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [authUser, setAuthUser] = useState(null);
+  const [clientProfile, setClientProfile] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [page, setPage] = useState('tasks'); // tasks | new | profile
+  const [editingTask, setEditingTask] = useState(null);
+  const [authMode, setAuthMode] = useState('login'); // login | signup
+  const [authError, setAuthError] = useState('');
+
+  // Check session on mount
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setAuthUser(session.user);
+        await loadProfile(session.user.id);
+      }
+      setLoading(false);
+    };
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setAuthUser(session.user);
+        await loadProfile(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setAuthUser(null);
+        setClientProfile(null);
+        setTasks([]);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadProfile = async (userId) => {
+    // Load client profile
+    const { data: profile } = await supabase
+      .from('client_profiles')
+      .select('*')
+      .eq('auth_user_id', userId)
+      .single();
+
+    if (profile) {
+      setClientProfile(profile);
+      await loadData(profile.id);
+    }
+
+    // Load companies for form
+    const { data: comps } = await supabase.from('companies').select('id, name, color').eq('is_active', true);
+    if (comps) setCompanies(comps);
+  };
+
+  const loadData = async (clientId) => {
+    const { data } = await supabase
+      .from('client_tasks')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    if (data) setTasks(data);
+  };
+
+  const handleSignUp = async (email, password, name) => {
+    setAuthError('');
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) { setAuthError(error.message); return; }
+    if (data.user) {
+      // Create client profile
+      const { error: profileError } = await supabase.from('client_profiles').insert([{
+        auth_user_id: data.user.id,
+        email: email,
+        name: name,
+      }]);
+      if (profileError) { setAuthError('Registrace proběhla, ale profil se nevytvořil: ' + profileError.message); return; }
+      setAuthUser(data.user);
+      await loadProfile(data.user.id);
+    }
+  };
+
+  const handleSignIn = async (email, password) => {
+    setAuthError('');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setAuthError(error.message); return; }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text-secondary)'}}>Načítání...</div>;
+
+  // Not logged in
+  if (!authUser) {
+    return <LoginPage mode={authMode} setMode={setAuthMode} onSignIn={handleSignIn} onSignUp={handleSignUp} error={authError} />;
+  }
+
+  // Logged in but no profile yet (need to set up)
+  if (!clientProfile) {
+    return <SetupProfile authUser={authUser} companies={companies} onComplete={async () => await loadProfile(authUser.id)} onSignOut={handleSignOut} />;
+  }
+
+  return (
+    <div className="app">
+      <div className="header">
+        <div className="header-logo">
+          <div className="header-logo-icon">JA</div>
+          <div>
+            <div className="header-title">Klientský portál</div>
+            <div className="header-subtitle">{clientProfile.name}</div>
+          </div>
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={handleSignOut}>Odhlásit</button>
+      </div>
+
+      <div className="content">
+        <div className="nav-tabs">
+          <button className={`nav-tab ${page === 'tasks' ? 'active' : ''}`} onClick={() => setPage('tasks')}>Moje úkoly</button>
+          <button className={`nav-tab ${page === 'new' ? 'active' : ''}`} onClick={() => { setEditingTask(null); setPage('new'); }}>+ Nový úkol</button>
+        </div>
+
+        {page === 'tasks' && (
+          <TasksList
+            tasks={tasks}
+            companies={companies}
+            onEdit={(task) => { setEditingTask(task); setPage('new'); }}
+            onDelete={async (taskId) => {
+              if (!confirm('Opravdu chcete smazat tento úkol?')) return;
+              const { error } = await supabase.from('client_tasks').update({
+                is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'client', deleted_by: clientProfile.id
+              }).eq('id', taskId);
+              if (!error) {
+                // Log
+                await supabase.from('client_task_logs').insert([{
+                  task_id: taskId, user_type: 'client', user_id: clientProfile.id,
+                  action: 'deleted', old_values: tasks.find(t => t.id === taskId), new_values: { is_deleted: true }
+                }]);
+                setTasks(tasks.filter(t => t.id !== taskId));
+              }
+            }}
+          />
+        )}
+
+        {page === 'new' && (
+          <TaskForm
+            companies={companies}
+            clientProfile={clientProfile}
+            editingTask={editingTask}
+            onSave={async (taskData) => {
+              if (editingTask) {
+                // Update
+                const { data, error } = await supabase.from('client_tasks')
+                  .update({ ...taskData, updated_at: new Date().toISOString() })
+                  .eq('id', editingTask.id).select();
+                if (error) { alert('Chyba: ' + error.message); return; }
+                // Log
+                await supabase.from('client_task_logs').insert([{
+                  task_id: editingTask.id, user_type: 'client', user_id: clientProfile.id,
+                  action: 'edited', old_values: editingTask, new_values: taskData
+                }]);
+                if (data) setTasks(tasks.map(t => t.id === editingTask.id ? data[0] : t));
+              } else {
+                // Create
+                const { data, error } = await supabase.from('client_tasks')
+                  .insert([{ ...taskData, client_id: clientProfile.id }]).select();
+                if (error) { alert('Chyba: ' + error.message); return; }
+                // Log
+                if (data) {
+                  await supabase.from('client_task_logs').insert([{
+                    task_id: data[0].id, user_type: 'client', user_id: clientProfile.id,
+                    action: 'created', new_values: data[0]
+                  }]);
+                  setTasks([data[0], ...tasks]);
+                }
+              }
+              setEditingTask(null);
+              setPage('tasks');
+            }}
+            onCancel={() => { setEditingTask(null); setPage('tasks'); }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==================== LOGIN PAGE ====================
+function LoginPage({ mode, setMode, onSignIn, onSignUp, error }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-title">Jokes Aside</div>
+        <div className="login-subtitle">{mode === 'login' ? 'Přihlášení do klientského portálu' : 'Registrace nového klienta'}</div>
+
+        {error && <div style={{background:'#fee2e2',color:'#dc2626',padding:'10px 14px',borderRadius:8,fontSize:13,marginBottom:16}}>{error}</div>}
+
+        {mode === 'signup' && (
+          <div style={{marginBottom:12}}>
+            <label className="label">Jméno a příjmení</label>
+            <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan Novák" />
+          </div>
+        )}
+
+        <div style={{marginBottom:12}}>
+          <label className="label">Email</label>
+          <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@firma.cz" />
+        </div>
+
+        <div style={{marginBottom:16}}>
+          <label className="label">Heslo</label>
+          <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+            onKeyDown={e => { if (e.key === 'Enter') mode === 'login' ? onSignIn(email, password) : onSignUp(email, password, name); }} />
+        </div>
+
+        <button className="btn btn-primary" style={{width:'100%',marginBottom:12}}
+          onClick={() => mode === 'login' ? onSignIn(email, password) : onSignUp(email, password, name)}>
+          {mode === 'login' ? 'Přihlásit se' : 'Registrovat se'}
+        </button>
+
+        <div style={{textAlign:'center',fontSize:13,color:'var(--text-secondary)'}}>
+          {mode === 'login' ? (
+            <>Nemáte účet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('signup')}>Registrovat se</button></>
+          ) : (
+            <>Máte účet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('login')}>Přihlásit se</button></>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== SETUP PROFILE ====================
+function SetupProfile({ authUser, companies, onComplete, onSignOut }) {
+  const [name, setName] = useState('');
+  const [companyId, setCompanyId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-title">Dokončete profil</div>
+        <div className="login-subtitle">Vyplňte údaje pro nastavení klientského účtu</div>
+
+        <div style={{marginBottom:12}}>
+          <label className="label">Jméno a příjmení</label>
+          <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan Novák" />
+        </div>
+
+        <div style={{marginBottom:16}}>
+          <label className="label">Firma</label>
+          <select className="input" value={companyId} onChange={e => setCompanyId(e.target.value)}>
+            <option value="">Vyberte firmu...</option>
+            {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <button className="btn btn-primary" style={{width:'100%',marginBottom:8}} disabled={saving || !name || !companyId}
+          onClick={async () => {
+            setSaving(true);
+            const { error } = await supabase.from('client_profiles').insert([{
+              auth_user_id: authUser.id, email: authUser.email, name, company_id: companyId
+            }]);
+            if (error) { alert('Chyba: ' + error.message); setSaving(false); return; }
+            await onComplete();
+            setSaving(false);
+          }}>
+          {saving ? 'Ukládám...' : 'Pokračovat'}
+        </button>
+        <button className="btn btn-outline" style={{width:'100%'}} onClick={onSignOut}>Odhlásit</button>
+      </div>
+    </div>
+  );
+}
+
+// ==================== TASKS LIST ====================
+function TasksList({ tasks, companies, onEdit, onDelete }) {
+  const [filter, setFilter] = useState('all'); // all | zadano | pracuje_se | hotovo
+
+  const filtered = tasks.filter(t => filter === 'all' || t.status === filter);
+
+  // Group by date
+  const grouped = {};
+  filtered.forEach(t => {
+    const d = t.created_at ? t.created_at.substring(0, 10) : 'unknown';
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(t);
+  });
+  const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+
+  return (
+    <div>
+      {/* Status filter */}
+      <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
+        {[{v:'all',l:'Vše'},{v:'zadano',l:'Zadáno'},{v:'pracuje_se',l:'Pracuje se'},{v:'hotovo',l:'Hotovo'}].map(f => (
+          <button key={f.v} className={`btn btn-sm ${filter === f.v ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setFilter(f.v)}>{f.l} {f.v !== 'all' && <span>({tasks.filter(t => t.status === f.v).length})</span>}</button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-title">Žádné úkoly</div>
+          <div>Vytvořte nový úkol kliknutím na "+ Nový úkol"</div>
+        </div>
+      ) : (
+        sortedDates.map(date => (
+          <div key={date}>
+            <div style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',padding:'12px 0 6px',textTransform:'capitalize'}}>
+              {formatDate(date)}
+            </div>
+            {grouped[date].map(task => {
+              const comp = companies.find(c => c.id === task.company_id);
+              const prio = PRIORITIES.find(p => p.value === task.priority);
+              const status = STATUSES[task.status];
+              return (
+                <div key={task.id} className="task-card">
+                  <div className="task-card-header">
+                    <div className="task-card-title">{task.title}</div>
+                    <span className={`badge ${status?.class || ''}`}>{status?.label || task.status}</span>
+                  </div>
+                  {task.description && <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:8}}>{task.description}</div>}
+                  <div className="task-card-meta">
+                    <span style={{display:'flex',alignItems:'center'}}>
+                      <span className={`priority-dot priority-${task.priority}`} />{prio?.label}
+                    </span>
+                    {comp && <span style={{background:comp.color+'15',color:comp.color,padding:'2px 8px',borderRadius:12,fontWeight:600}}>{comp.name}</span>}
+                    <span>{task.division}</span>
+                    {task.deadline && <span>📅 {new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</span>}
+                  </div>
+                  {task.status !== 'hotovo' && (
+                    <div style={{display:'flex',gap:8,marginTop:10,justifyContent:'flex-end'}}>
+                      <button className="btn btn-outline btn-sm" onClick={() => onEdit(task)}>Upravit</button>
+                      <button className="btn btn-sm" style={{color:'var(--danger)',border:'1px solid var(--danger)',borderRadius:8,background:'var(--surface)'}}
+                        onClick={() => onDelete(task.id)}>Smazat</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// ==================== TASK FORM ====================
+function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
+  const [title, setTitle] = useState(editingTask?.title || '');
+  const [description, setDescription] = useState(editingTask?.description || '');
+  const [companyId, setCompanyId] = useState(editingTask?.company_id || clientProfile?.company_id || '');
+  const [division, setDivision] = useState(editingTask?.division || '');
+  const [priority, setPriority] = useState(editingTask?.priority || 'medium');
+  const [deadline, setDeadline] = useState(editingTask?.deadline || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!title.trim()) { alert('Vyplňte název úkolu'); return; }
+    if (!companyId) { alert('Vyberte firmu'); return; }
+    if (!division) { alert('Vyberte divizi'); return; }
+
+    setSaving(true);
+    await onSave({
+      title: title.trim(),
+      description: description.trim() || null,
+      company_id: companyId,
+      division,
+      priority,
+      deadline: deadline || null,
+    });
+    setSaving(false);
+  };
+
+  return (
+    <div>
+      <div style={{fontSize:18,fontWeight:700,marginBottom:16}}>{editingTask ? 'Upravit úkol' : 'Nový úkol'}</div>
+
+      <div style={{marginBottom:12}}>
+        <label className="label">Název úkolu *</label>
+        <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Co potřebujete?" autoFocus />
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label className="label">Popis (volitelné)</label>
+        <textarea className="input" value={description} onChange={e => setDescription(e.target.value)} placeholder="Podrobnější popis úkolu..." />
+      </div>
+
+      <div className="form-row">
+        <div>
+          <label className="label">Firma *</label>
+          <select className="input" value={companyId} onChange={e => setCompanyId(e.target.value)}>
+            <option value="">Vyberte...</option>
+            {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Divize *</label>
+          <select className="input" value={division} onChange={e => setDivision(e.target.value)}>
+            <option value="">Vyberte...</option>
+            {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div>
+          <label className="label">Priorita</label>
+          <div style={{display:'flex',gap:6}}>
+            {PRIORITIES.map(p => (
+              <button key={p.value} className={`btn btn-sm ${priority === p.value ? 'btn-primary' : 'btn-outline'}`}
+                style={priority === p.value ? {background: p.color, borderColor: p.color} : {}}
+                onClick={() => setPriority(p.value)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="label">Deadline</label>
+          <input className="input" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
+        </div>
+      </div>
+
+      <div style={{display:'flex',gap:8,marginTop:20}}>
+        <button className="btn btn-outline" style={{flex:1}} onClick={onCancel}>Zrušit</button>
+        <button className="btn btn-primary" style={{flex:2}} disabled={saving} onClick={handleSubmit}>
+          {saving ? 'Ukládám...' : editingTask ? 'Uložit změny' : 'Zadat úkol'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ==================== RENDER ====================
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
