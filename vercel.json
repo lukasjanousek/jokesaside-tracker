@@ -8,5 +8,18 @@
       "source": "/tasks",
       "destination": "/tasks/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "task.jokesaside.cz"
+        }
+      ],
+      "destination": "/tasks",
+      "permanent": true
+    }
   ]
 }
