@@ -1743,7 +1743,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           </div>
 
           {/* Timer + Manual side by side */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1.5fr',gap:12,marginTop:12}}>
+          <div className="timer-manual-grid" style={{display:'grid',gridTemplateColumns:'1fr 1.5fr',gap:12,marginTop:12}}>
             {/* Left: Timer */}
             <button className="btn btn-primary" onClick={() => { if(selCompanies.length > 0 && desc) onStartTimer(selCompanies[0], desc); }} disabled={selCompanies.length === 0 || !desc} style={{width:'100%'}}>
               <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.play}</span> Spustit timer{selCompanies.length > 1 ? ' ('+companies.find(c=>c.id===selCompanies[0])?.name+')' : ''}
