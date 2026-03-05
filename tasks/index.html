@@ -129,13 +129,26 @@ function App() {
   const [authMode, setAuthMode] = useState('login'); // login | signup
   const [authError, setAuthError] = useState('');
 
+  // Auto-refresh tasks every 15 seconds
+  useEffect(() => {
+    if (!clientProfile) return;
+    const interval = setInterval(() => {
+      loadData(clientProfile.id);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [clientProfile]);
+
   // Check session on mount
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setAuthUser(session.user);
-        await loadProfile(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setAuthUser(session.user);
+          await loadProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('[ClientPortal] init error:', err);
       }
       setLoading(false);
     };
@@ -155,21 +168,26 @@ function App() {
   }, []);
 
   const loadProfile = async (userId) => {
-    // Load client profile
-    const { data: profile } = await supabase
-      .from('client_profiles')
-      .select('*')
-      .eq('auth_user_id', userId)
-      .single();
+    try {
+      // Load client profile
+      const { data: profiles, error: profError } = await supabase
+        .from('client_profiles')
+        .select('*')
+        .eq('auth_user_id', userId);
 
-    if (profile) {
-      setClientProfile(profile);
-      await loadData(profile.id);
+      console.log('[ClientPortal] profiles:', profiles, 'error:', profError);
+
+      if (profiles && profiles.length > 0) {
+        setClientProfile(profiles[0]);
+        await loadData(profiles[0].id);
+      }
+
+      // Load companies for form
+      const { data: comps } = await supabase.from('companies').select('id, name, color').eq('is_active', true);
+      if (comps) setCompanies(comps);
+    } catch (err) {
+      console.error('[ClientPortal] loadProfile error:', err);
     }
-
-    // Load companies for form
-    const { data: comps } = await supabase.from('companies').select('id, name, color').eq('is_active', true);
-    if (comps) setCompanies(comps);
   };
 
   const loadData = async (clientId) => {
