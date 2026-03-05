@@ -22,13 +22,13 @@
   --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
 }
 html { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
-body { min-height: 100dvh; }
+html, body { min-height: 100dvh; overflow-x: hidden; width: 100%; }
 input, select, textarea, button { font-family: inherit; font-size: inherit; }
 button { cursor: pointer; border: none; background: none; }
 
 /* Layout */
-.app { display: flex; flex-direction: column; min-height: 100dvh; }
-.main { flex: 1; padding: 16px; max-width: 960px; margin: 0 auto; width: 100%; padding-bottom: 80px; }
+.app { display: flex; flex-direction: column; min-height: 100dvh; overflow-x: hidden; max-width: 100vw; }
+.main { flex: 1; padding: 16px; max-width: 960px; margin: 0 auto; width: 100%; padding-bottom: 80px; overflow-x: hidden; }
 
 /* Top bar */
 .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
@@ -188,6 +188,21 @@ button { cursor: pointer; border: none; background: none; }
 .desc-suggestion-item { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
 .desc-suggestion-item:last-child { border-bottom: none; }
 .desc-suggestion-item:hover { background: var(--bg); }
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .main { padding: 10px; }
+  .topbar { padding: 8px 10px; }
+  .topbar h1 { font-size: 16px; }
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+  .quick-track { padding: 12px; }
+  .quick-track-row { flex-wrap: wrap; }
+  .card { overflow: hidden; }
+  .modal { padding: 16px; }
+  input, textarea, select { max-width: 100%; }
+}
+
 </style>
 </head>
 <body>
@@ -1520,7 +1535,7 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
           </button>
         </div>
         <input className="input" value={editDesc} onChange={e=>setEditDesc(e.target.value)} placeholder="Popis" style={{marginBottom:8}} />
-        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:8}}>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:8,maxWidth:'100%',overflow:'hidden'}}>
           {companies.map(c => (
             <button key={c.id} className={`company-pill ${editCompany===c.id?'selected':''}`}
               onClick={()=>setEditCompany(c.id)}
@@ -1529,14 +1544,14 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
             </button>
           ))}
         </div>
-        <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:10}}>
+        <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:10,flexWrap:'wrap'}}>
           <div className="time-input-group">
             <input className="input time-input" type="number" min="0" value={editHours} onChange={e=>setEditHours(e.target.value)} style={{width:48}} />
             <span style={{fontSize:12,color:'var(--text-secondary)'}}>h</span>
             <input className="input time-input" type="number" min="0" max="59" value={editMins} onChange={e=>setEditMins(e.target.value)} style={{width:48}} />
             <span style={{fontSize:12,color:'var(--text-secondary)'}}>m</span>
           </div>
-          <input className="input" type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{width:140,fontSize:13}} />
+          <input className="input" type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{maxWidth:140,width:'100%',fontSize:13}} />
         </div>
         <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
           <button className="btn btn-outline btn-sm" onClick={handleCancel}>Zrušit</button>
