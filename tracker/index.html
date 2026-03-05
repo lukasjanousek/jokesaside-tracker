@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Jokes Aside — Time Tracker</title>
+<title>Jokes Aside â Time Tracker</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%236366f1'/%3E%3Ccircle cx='32' cy='32' r='24' fill='white' stroke='%236366f1' stroke-width='2'/%3E%3Cline x1='32' y1='32' x2='32' y2='16' stroke='%236366f1' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='32' y1='32' x2='44' y2='36' stroke='%236366f1' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='2.5' fill='%236366f1'/%3E%3C/svg%3E" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -221,7 +221,7 @@ function calculateCredit(paymentCzk, tiers = null) {
   return totalCredit;
 }
 
-function formatCzk(n) { return Math.round(n).toLocaleString('cs-CZ') + ' Kč'; }
+function formatCzk(n) { return Math.round(n).toLocaleString('cs-CZ') + ' KÄ'; }
 const DPH_RATE = 0.21;
 function formatCzkDph(n) { return formatCzk(n) + ' bez DPH'; }
 function dphAmount(n) { return n * DPH_RATE; }
@@ -240,7 +240,7 @@ function getMonthKey(d) {
 }
 function getMonthLabel(key) {
   const [y, m] = key.split('-');
-  const months = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+  const months = ['Leden','Ãnor','BÅezen','Duben','KvÄten','Äerven','Äervenec','Srpen','ZÃ¡ÅÃ­','ÅÃ­jen','Listopad','Prosinec'];
   return `${months[parseInt(m)-1]} ${y}`;
 }
 function currentMonthKey() { return getMonthKey(new Date()); }
@@ -302,7 +302,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
     e.preventDefault();
     setLocalError('');
     if (!email || !password) {
-      setLocalError('Vyplňte email a heslo');
+      setLocalError('VyplÅte email a heslo');
       return;
     }
 
@@ -349,7 +349,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
             <>
               {resetSent ? (
                 <div style={{padding:12,background:'var(--success-bg)',borderRadius:8,marginBottom:8,color:'var(--success)',fontSize:14}}>
-                  Odkaz pro reset hesla byl odeslán na {email}. Zkontrolujte svůj email.
+                  Odkaz pro reset hesla byl odeslÃ¡n na {email}. Zkontrolujte svÅ¯j email.
                 </div>
               ) : (
                 <button
@@ -368,7 +368,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
                 style={{ width: '100%' }}
                 onClick={() => { setForgotMode(false); setResetSent(false); setLocalError(''); }}
               >
-                Zpět na přihlášení
+                ZpÄt na pÅihlÃ¡Å¡enÃ­
               </button>
             </>
           ) : (
@@ -379,7 +379,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
                 style={{ width: '100%', marginBottom: 8 }}
                 disabled={loading}
               >
-                {loading ? 'Načítám...' : (isRegistering ? 'Registrovat' : 'Přihlásit')}
+                {loading ? 'NaÄÃ­tÃ¡m...' : (isRegistering ? 'Registrovat' : 'PÅihlÃ¡sit')}
               </button>
               {!isRegistering && (
                 <button
@@ -387,7 +387,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
                   style={{ width: '100%', background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 13, marginBottom: 8 }}
                   onClick={() => { setForgotMode(true); setLocalError(''); }}
                 >
-                  Zapomněl/a jsem heslo
+                  ZapomnÄl/a jsem heslo
                 </button>
               )}
               <button
@@ -400,7 +400,7 @@ function LoginPage({ onLoginSuccess, onSignUp, loading, error }) {
                 }}
                 disabled={loading}
               >
-                {isRegistering ? 'Už mám účet' : 'Vytvořit nový účet'}
+                {isRegistering ? 'UÅ¾ mÃ¡m ÃºÄet' : 'VytvoÅit novÃ½ ÃºÄet'}
               </button>
             </>
           )}
@@ -533,7 +533,7 @@ function App() {
 
   const handleSignUp = async (email, password) => {
     if (!supabase) {
-      setAuthError('Supabase není nakonfigurován');
+      setAuthError('Supabase nenÃ­ nakonfigurovÃ¡n');
       return;
     }
     try {
@@ -544,9 +544,9 @@ function App() {
         password,
       });
       if (signUpError) throw signUpError;
-      setAuthError('Účet vytvořen! Nyní se přihlaste.');
+      setAuthError('ÃÄet vytvoÅen! NynÃ­ se pÅihlaste.');
     } catch (err) {
-      setAuthError(err.message || 'Chyba při registraci');
+      setAuthError(err.message || 'Chyba pÅi registraci');
     } finally {
       setLoading(false);
     }
@@ -554,7 +554,7 @@ function App() {
 
   const handleLogin = async (email, password) => {
     if (!supabase) {
-      setAuthError('Supabase není nakonfigurován');
+      setAuthError('Supabase nenÃ­ nakonfigurovÃ¡n');
       return;
     }
     try {
@@ -569,7 +569,7 @@ function App() {
         await loadUserProfile(authData.user.id);
       }
     } catch (err) {
-      setAuthError(err.message || 'Chyba při přihlášení');
+      setAuthError(err.message || 'Chyba pÅi pÅihlÃ¡Å¡enÃ­');
     } finally {
       setLoading(false);
     }
@@ -752,7 +752,7 @@ function App() {
       <div className="topbar">
         <div className="topbar-title">Jokes Aside</div>
         <div className="topbar-user">
-          <button onClick={async () => { if(supabase) { await supabase.auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); } }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>Odhlásit</button>
+          <button onClick={async () => { if(supabase) { await supabase.auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); } }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>OdhlÃ¡sit</button>
           <span style={{fontSize: 13, color: 'var(--text-secondary)'}}>{currentUser?.name?.split(' ')[0]}</span>
           <div className="avatar">{currentUser?.name?.charAt(0) || '?'}</div>
         </div>
@@ -869,13 +869,13 @@ function App() {
           {Icons.clock}
           <span>Tracking</span>
         </button>
-        <button className={`nav-item ${page === 'meetings' ? 'active' : ''}`} onClick={() => navTo('meetings')} title="Opakované">
+        <button className={`nav-item ${page === 'meetings' ? 'active' : ''}`} onClick={() => navTo('meetings')} title="OpakovanÃ©">
           {Icons.users}
-          <span>Opakované</span>
+          <span>OpakovanÃ©</span>
         </button>
-        <button className={`nav-item ${page === 'client-tasks' ? 'active' : ''}`} onClick={() => navTo('client-tasks')} title="Úkoly">
+        <button className={`nav-item ${page === 'client-tasks' ? 'active' : ''}`} onClick={() => navTo('client-tasks')} title="Ãkoly">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          <span>Úkoly</span>
+          <span>Ãkoly</span>
         </button>
         <button className={`nav-item ${page === 'reports' ? 'active' : ''}`} onClick={() => navTo('reports')} title="Reports">
           {Icons.chart}
@@ -932,7 +932,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const handleManualAdd = () => {
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
-    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
+    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     const participantIds = dashParticipants.length > 0 ? dashParticipants : [currentUser.id];
     participantIds.forEach(userId => {
       quickCompanies.forEach(compId => {
@@ -949,23 +949,23 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
         {timerRunning ? (
           <div>
             <div style={{fontSize:13, color:'var(--text-secondary)', marginBottom:4}}>
-              {companies.find(c=>c.id===timerCompany)?.name} — {timerDesc}
+              {companies.find(c=>c.id===timerCompany)?.name} â {timerDesc}
             </div>
             <div className={`timer-display timer-running`}>
               {new Date(timerElapsed).toISOString().substr(11,8)}
             </div>
             <button className="btn btn-danger" style={{width:'100%'}} onClick={onStopTimer}>
-              <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.stop}</span> Zastavit a uložit
+              <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.stop}</span> Zastavit a uloÅ¾it
             </button>
           </div>
         ) : (
           <div>
             <div style={{display:'flex',gap:0,marginBottom:10}}>
               <button onClick={()=>setDashMode('task')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px 0 0 8px',background:dashMode==='task'?'var(--primary)':'var(--surface)',color:dashMode==='task'?'white':'var(--text-secondary)',cursor:'pointer',borderRight:'none'}}>
-                Nový task
+                NovÃ½ task
               </button>
               <button onClick={()=>setDashMode('meeting')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'0 8px 8px 0',background:dashMode==='meeting'?'var(--primary)':'var(--surface)',color:dashMode==='meeting'?'white':'var(--text-secondary)',cursor:'pointer'}}>
-                Opakovaný task
+                OpakovanÃ½ task
               </button>
             </div>
             {dashMode === 'task' && (
@@ -982,9 +982,9 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 );
               })}
             </div>
-            {quickCompanies.length > 1 && <div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4,textAlign:'center'}}>{quickCompanies.length} firem vybráno — task se přidá ke všem</div>}
+            {quickCompanies.length > 1 && <div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4,textAlign:'center'}}>{quickCompanies.length} firem vybrÃ¡no â task se pÅidÃ¡ ke vÅ¡em</div>}
             <div style={{marginBottom:8}}>
-              <label style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:3}}>Účastníci</label>
+              <label style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:3}}>ÃÄastnÃ­ci</label>
               <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                 {users.filter(u => u.is_active !== false).map(u => {
                   const isSel = dashParticipants.includes(u.id);
@@ -1003,15 +1003,15 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                           setDashParticipants(prev => isSel ? prev.filter(id=>id!==u.id) : [...prev, u.id]);
                         }
                       }}>
-                      {u.name.split(' ')[0]}{isMe ? ' (já)' : ''}
+                      {u.name.split(' ')[0]}{isMe ? ' (jÃ¡)' : ''}
                     </button>
                   );
                 })}
               </div>
-              {dashParticipants.length > 1 && <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:2}}>{dashParticipants.length} účastníků</div>}
+              {dashParticipants.length > 1 && <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:2}}>{dashParticipants.length} ÃºÄastnÃ­kÅ¯</div>}
             </div>
             <div style={{position:'relative',marginBottom:8}}>
-              <input className="input" placeholder="Co jdeš dělat?" value={quickDesc}
+              <input className="input" placeholder="Co jdeÅ¡ dÄlat?" value={quickDesc}
                 ref={dashDescRef}
                 onChange={e=>{setQuickDesc(e.target.value); setShowDashSuggestions(true);}}
                 onFocus={()=>setShowDashSuggestions(true)}
@@ -1031,7 +1031,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 <span style={{width:18,height:18,display:'inline-flex'}}>{Icons.play}</span> Spustit timer
               </button>
               <div style={{border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:8,background:'var(--surface)'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',marginBottom:6}}>Ruční zadání</div>
+                <div style={{fontSize:11,fontWeight:600,color:'var(--text-secondary)',marginBottom:6}}>RuÄnÃ­ zadÃ¡nÃ­</div>
                 <div style={{display:'flex',gap:5,alignItems:'center',marginBottom:6}}>
                   <input className="input" type="time" value={dashTimeFrom} onChange={e=>{
                     setDashTimeFrom(e.target.value);
@@ -1042,7 +1042,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                       if (diff > 0) { setManualHours(String(Math.floor(diff/60))); setManualMins(String(diff%60)); }
                     }
                   }} style={{flex:1,fontSize:12,minWidth:60}} />
-                  <span style={{fontSize:11,color:'var(--text-secondary)'}}>–</span>
+                  <span style={{fontSize:11,color:'var(--text-secondary)'}}>â</span>
                   <input className="input" type="time" value={dashTimeTo} onChange={e=>{
                     setDashTimeTo(e.target.value);
                     if (dashTimeFrom && e.target.value) {
@@ -1060,7 +1060,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 </div>
                 <div style={{display:'flex',gap:6,alignItems:'center'}}>
                   <input className="input" type="date" value={manualDate} onChange={e=>setManualDate(e.target.value)} style={{flex:1,fontSize:12}} />
-                  <button className="btn btn-primary btn-sm" onClick={handleManualAdd}>Uložit</button>
+                  <button className="btn btn-primary btn-sm" onClick={handleManualAdd}>UloÅ¾it</button>
                 </div>
               </div>
             </div>
@@ -1070,7 +1070,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
             <div>
               <div style={{marginBottom:12}}>
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis</label>
-                <input className="input" placeholder="Název opakovaného tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
+                <input className="input" placeholder="NÃ¡zev opakovanÃ©ho tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
               </div>
 
               <div style={{marginBottom:12}}>
@@ -1095,9 +1095,9 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               <div style={{marginBottom:12}}>
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Frekvence</label>
                 <div style={{display:'flex',gap:6}}>
-                  <button onClick={()=>setMeetingFreq('daily')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='daily'?'var(--primary)':'var(--surface)',color:meetingFreq==='daily'?'white':'var(--text)',cursor:'pointer'}}>Denní</button>
-                  <button onClick={()=>setMeetingFreq('weekly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='weekly'?'var(--primary)':'var(--surface)',color:meetingFreq==='weekly'?'white':'var(--text)',cursor:'pointer'}}>Týdenní</button>
-                  <button onClick={()=>setMeetingFreq('monthly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='monthly'?'var(--primary)':'var(--surface)',color:meetingFreq==='monthly'?'white':'var(--text)',cursor:'pointer'}}>Měsíční</button>
+                  <button onClick={()=>setMeetingFreq('daily')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='daily'?'var(--primary)':'var(--surface)',color:meetingFreq==='daily'?'white':'var(--text)',cursor:'pointer'}}>DennÃ­</button>
+                  <button onClick={()=>setMeetingFreq('weekly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='weekly'?'var(--primary)':'var(--surface)',color:meetingFreq==='weekly'?'white':'var(--text)',cursor:'pointer'}}>TÃ½dennÃ­</button>
+                  <button onClick={()=>setMeetingFreq('monthly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='monthly'?'var(--primary)':'var(--surface)',color:meetingFreq==='monthly'?'white':'var(--text)',cursor:'pointer'}}>MÄsÃ­ÄnÃ­</button>
                 </div>
               </div>
 
@@ -1105,7 +1105,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Den</label>
                 {meetingFreq === 'weekly' && (
                   <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                    {['Po','Út','St','Čt','Pá'].map((day, idx) => (
+                    {['Po','Ãt','St','Ät','PÃ¡'].map((day, idx) => (
                       <button key={idx} onClick={()=>setMeetingDay(idx+1)} style={{flex:1,minWidth:50,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingDay===idx+1?'var(--primary)':'var(--surface)',color:meetingDay===idx+1?'white':'var(--text)',cursor:'pointer'}}>{day}</button>
                     ))}
                   </div>
@@ -1116,7 +1116,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               </div>
 
               <div style={{marginBottom:12}}>
-                <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Délka na firmu</label>
+                <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>DÃ©lka na firmu</label>
                 <select className="select" value={meetingDuration} onChange={e=>setMeetingDuration(Number(e.target.value))} style={{width:'100%'}}>
                   <option value={15}>15 minut</option>
                   <option value={30}>30 minut</option>
@@ -1130,7 +1130,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               </div>
 
               <div style={{marginBottom:12}}>
-                <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Účastníci</label>
+                <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>ÃÄastnÃ­ci</label>
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {users.map(u => (
                     <label key={u.id} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontSize:14}}>
@@ -1152,12 +1152,12 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Platnost</label>
                 <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:8}}>
                   <input className="input" type="date" value={meetingStartDate} onChange={e=>setMeetingStartDate(e.target.value)} style={{flex:1}} />
-                  <span style={{fontSize:12,color:'var(--text-secondary)'}}>—</span>
+                  <span style={{fontSize:12,color:'var(--text-secondary)'}}>â</span>
                   <input className="input" type="date" value={meetingIndefinite ? '' : meetingEndDate} onChange={e=>setMeetingEndDate(e.target.value)} disabled={meetingIndefinite === true} style={{flex:1, opacity: meetingIndefinite ? 0.4 : 1, cursor: meetingIndefinite ? 'not-allowed' : 'pointer'}} />
                 </div>
                 <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontSize:13}}>
                   <input type="checkbox" checked={meetingIndefinite} onChange={e=>setMeetingIndefinite(e.target.checked)} />
-                  Dokud nezruším
+                  Dokud nezruÅ¡Ã­m
                 </label>
               </div>
 
@@ -1165,9 +1165,9 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 const missing = [];
                 if (!meetingDesc) missing.push('Popis');
                 if (meetingCompanies.length === 0) missing.push('Firmy');
-                if (!meetingStartDate) missing.push('Datum začátku');
+                if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
                 if (missing.length > 0) {
-                  alert('Vyplňte prosím: ' + missing.join(', '));
+                  alert('VyplÅte prosÃ­m: ' + missing.join(', '));
                   return;
                 }
                 const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
@@ -1193,12 +1193,12 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                       const { data, error } = await sb.from('recurring_meetings').insert([meetingData]).select();
                       console.log('[Meeting Save] Result:', JSON.stringify({data, error}));
                       if (error) throw error;
-                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); alert('Task uložen!'); }
+                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); alert('Task uloÅ¾en!'); }
                     } else {
                       const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                       setRecurringMeetings([...recurringMeetings, newMeeting]);
                     }
-                  } catch(err) { console.error('[Meeting Save] Error:', err); alert('Chyba při ukládání:' + err.message); }
+                  } catch(err) { console.error('[Meeting Save] Error:', err); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
                 })();
 
                 // Send email notification
@@ -1206,18 +1206,18 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 const otherParticipants = allParticipants.filter(uid => uid !== currentUser.id);
                 if (otherParticipants.length > 0) {
                   const emails = otherParticipants.map(uid => users.find(u=>u.id===uid)?.email).filter(Boolean).join(',');
-                  const freqLabel = meetingFreq === 'daily' ? 'Denně' : meetingFreq === 'weekly' ? 'Každý týden' : 'Každý měsíc';
+                  const freqLabel = meetingFreq === 'daily' ? 'DennÄ' : meetingFreq === 'weekly' ? 'KaÅ¾dÃ½ tÃ½den' : 'KaÅ¾dÃ½ mÄsÃ­c';
                   const durationLabel = meetingDuration < 60 ? meetingDuration + ' minut' : meetingDuration === 60 ? '1 hodina' : (meetingDuration / 60) + ' hodin';
                   const companyNames = meetingCompanies.map(cid => companies.find(c => c.id === cid)?.name).join(', ');
-                  const subject = encodeURIComponent('Jokes Aside – Pozvánka na pravidelný meeting: ' + meetingDesc);
+                  const subject = encodeURIComponent('Jokes Aside â PozvÃ¡nka na pravidelnÃ½ meeting: ' + meetingDesc);
                   const body = encodeURIComponent(
-                    'Dobrý den,\n\n' +
-                    'byli jste přidáni do opakovaného tasku "' + meetingDesc + '".\n\n' +
+                    'DobrÃ½ den,\n\n' +
+                    'byli jste pÅidÃ¡ni do opakovanÃ©ho tasku "' + meetingDesc + '".\n\n' +
                     'Frekvence: ' + freqLabel + '\n' +
-                    'Délka: ' + durationLabel + ' na firmu\n' +
+                    'DÃ©lka: ' + durationLabel + ' na firmu\n' +
                     'Firmy: ' + companyNames + '\n\n' +
-                    'Potvrďte prosím svou účast v trackeru:\n' + window.location.href + '\n\n' +
-                    'Děkuji,\n' + currentUser.name
+                    'PotvrÄte prosÃ­m svou ÃºÄast v trackeru:\n' + window.location.href + '\n\n' +
+                    'DÄkuji,\n' + currentUser.name
                   );
                   if (emails) {
                     window.open('mailto:' + emails + '?subject=' + subject + '&body=' + body, '_blank');
@@ -1235,7 +1235,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 setMeetingEndDate('');
                 setMeetingIndefinite(true);
                 setDashMode('task');
-              }}>Uložit meeting</button>
+              }}>UloÅ¾it meeting</button>
             </div>
             )}
           </div>
@@ -1262,7 +1262,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               </div>
               {b.total > 0 && (
                 <div style={{fontSize:11, color: b.remaining >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:600, marginTop:4}}>
-                  {b.remaining >= 0 ? `Zbývá ${formatCzk(b.remaining)}` : `Přečerpáno ${formatCzk(Math.abs(b.remaining))}`}
+                  {b.remaining >= 0 ? `ZbÃ½vÃ¡ ${formatCzk(b.remaining)}` : `PÅeÄerpÃ¡no ${formatCzk(Math.abs(b.remaining))}`}
                 </div>
               )}
               {b.total > 0 && (
@@ -1272,7 +1272,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               )}
               {b.total === 0 && b.used > 0 && (
                 <div style={{fontSize:11, color:'var(--text-secondary)', fontWeight:600, marginTop:4}}>
-                  Odpracováno: {formatCzk(b.used)} (bez retaineru)
+                  OdpracovÃ¡no: {formatCzk(b.used)} (bez retaineru)
                 </div>
               )}
             </div>
@@ -1282,32 +1282,32 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
 
       {/* Active recurring meetings summary */}
       <div style={{marginTop:20}}>
-        <div className="section-title">Opakované tasky ({recurringMeetings.length} celkem)</div>
+        <div className="section-title">OpakovanÃ© tasky ({recurringMeetings.length} celkem)</div>
         {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).length > 0 ? (
           <div className="task-list">
             {recurringMeetings.filter(m => (m.isActive ?? m.is_active ?? true)).map(m => {
               const compIds = m.companyIds || m.company_ids || [];
               const compNames = compIds.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ') || 'bez firmy';
-              const freqLabel = m.frequency === 'daily' ? 'Denně' : m.frequency === 'weekly' ? 'Týdně' : 'Měsíčně';
+              const freqLabel = m.frequency === 'daily' ? 'DennÄ' : m.frequency === 'weekly' ? 'TÃ½dnÄ' : 'MÄsÃ­ÄnÄ';
               const dur = m.durationMin || m.duration_min || 60;
               return (
                 <div key={m.id} className="task-item">
                   <div className="task-dot" style={{background:'var(--primary)'}} />
                   <div className="task-info">
-                    <div className="task-desc">🔄 {m.description}</div>
-                    <div className="task-meta">{freqLabel} · {compNames} · {dur < 60 ? dur + ' min' : (dur/60) + ' hod'}</div>
+                    <div className="task-desc">ð {m.description}</div>
+                    <div className="task-meta">{freqLabel} Â· {compNames} Â· {dur < 60 ? dur + ' min' : (dur/60) + ' hod'}</div>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div style={{fontSize:13, color:'var(--text-secondary)', padding:'8px 0'}}>Žádné opakované tasky. Vytvořte je v záložce Opakované nebo v sekci výše.</div>
+          <div style={{fontSize:13, color:'var(--text-secondary)', padding:'8px 0'}}>Å½Ã¡dnÃ© opakovanÃ© tasky. VytvoÅte je v zÃ¡loÅ¾ce OpakovanÃ© nebo v sekci vÃ½Å¡e.</div>
         )}
       </div>
 
       {/* Recent activity */}
-      <div className="section-title" style={{marginTop:20}}>Poslední aktivita</div>
+      <div className="section-title" style={{marginTop:20}}>PoslednÃ­ aktivita</div>
       <div className="task-list">
         {[...entries].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,10).map(e => {
           const user = users.find(u=>u.id===e.user_id);
@@ -1316,8 +1316,8 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
             <div key={e.id} className="task-item">
               <div className="task-dot" style={{background: comp?.color || '#999'}} />
               <div className="task-info">
-                <div className="task-desc">{e.description}{e.recurring_meeting_id ? ' 🔄' : ''}</div>
-                <div className="task-meta">{user?.name} · {comp?.name} · {formatDate(e.date)}{e.updated_at && ` · editováno ${new Date(e.updated_at).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}</div>
+                <div className="task-desc">{e.description}{e.recurring_meeting_id ? ' ð' : ''}</div>
+                <div className="task-meta">{user?.name} Â· {comp?.name} Â· {formatDate(e.date)}{e.updated_at && ` Â· editovÃ¡no ${new Date(e.updated_at).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}</div>
               </div>
               <div className="task-time">{formatHours(e.duration_min)}</div>
             </div>
@@ -1330,7 +1330,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
 
 // ==================== COMPANY DETAIL ====================
 function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDeleteEntry, onUpdateEntry, companies, currentUser, isEntryLocked, recurringMeetings }) {
-  if (!company) return <div>Firmu se nepodařilo načíst</div>;
+  if (!company) return <div>Firmu se nepodaÅilo naÄÃ­st</div>;
 
   const month = currentMonthKey();
   const budget = getCompanyBudget(company.id, month);
@@ -1357,7 +1357,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
   return (
     <div>
       <button className="back-btn" onClick={onBack}>
-        <span style={{width:18,height:18,display:'inline-flex'}}>{Icons.back}</span> Zpět
+        <span style={{width:18,height:18,display:'inline-flex'}}>{Icons.back}</span> ZpÄt
       </button>
 
       <div className="detail-header">
@@ -1375,18 +1375,18 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
       <div className="stats-row">
         <div className="stat-box">
           <div className="stat-value" style={{color: 'var(--primary)'}}>{formatCzk(budget.total)}</div>
-          <div className="stat-label">Celkový kredit bez DPH</div>
+          <div className="stat-label">CelkovÃ½ kredit bez DPH</div>
         </div>
         <div className="stat-box">
           <div className="stat-value" style={{color: 'var(--warning)'}}>{formatCzk(budget.used)}</div>
-          <div className="stat-label">Vyčerpáno bez DPH</div>
+          <div className="stat-label">VyÄerpÃ¡no bez DPH</div>
         </div>
         {budget.total > 0 && (
           <div className="stat-box">
             <div className="stat-value" style={{color: budget.remaining >= 0 ? 'var(--success)' : 'var(--danger)'}}>
               {formatCzk(Math.abs(budget.remaining))}
             </div>
-            <div className="stat-label">{budget.remaining >= 0 ? 'Zbývá' : 'Přečerpáno'}</div>
+            <div className="stat-label">{budget.remaining >= 0 ? 'ZbÃ½vÃ¡' : 'PÅeÄerpÃ¡no'}</div>
           </div>
         )}
       </div>
@@ -1396,7 +1396,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
       </div>
 
       <div className="card" style={{marginBottom:16}}>
-        <div className="section-title">Lidé tento měsíc</div>
+        <div className="section-title">LidÃ© tento mÄsÃ­c</div>
         {Object.entries(peopleSummary).map(([uid, data]) => {
           const user = users.find(u => u.id === uid);
           if (!user) return null;
@@ -1407,7 +1407,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
               <div className="person-avatar" style={{background: colors[ci]}}>{user.name.charAt(0)}</div>
               <div className="person-info">
                 <div className="person-name">{user.name}</div>
-                <div className="person-role">{user.position} · {formatCzk(data.czk)} bez DPH</div>
+                <div className="person-role">{user.position} Â· {formatCzk(data.czk)} bez DPH</div>
               </div>
               <div className="person-hours">{formatHours(data.mins)}</div>
             </div>
@@ -1422,23 +1422,23 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
         return isActive && compIds.includes(company.id);
       }).length > 0 && (
         <div className="card" style={{marginBottom:16}}>
-          <div className="section-title">Opakované tasky</div>
+          <div className="section-title">OpakovanÃ© tasky</div>
           {(recurringMeetings || []).filter(m => {
             const isActive = m.isActive ?? m.is_active;
             const compIds = m.companyIds || m.company_ids || [];
             return isActive && compIds.includes(company.id);
           }).map(m => {
-            const freqLabel = m.frequency === 'daily' ? 'Denně' : m.frequency === 'weekly' ? 'Týdně' : 'Měsíčně';
-            const dayLabel = m.frequency === 'weekly' ? ['Ne','Po','Út','St','Čt','Pá','So'][m.dayOfWeek ?? m.day_of_week ?? 0] : '';
+            const freqLabel = m.frequency === 'daily' ? 'DennÄ' : m.frequency === 'weekly' ? 'TÃ½dnÄ' : 'MÄsÃ­ÄnÄ';
+            const dayLabel = m.frequency === 'weekly' ? ['Ne','Po','Ãt','St','Ät','PÃ¡','So'][m.dayOfWeek ?? m.day_of_week ?? 0] : '';
             const dur = m.durationMin || m.duration_min || 60;
             const partIds = m.participantIds || m.participant_ids || [];
             const partNames = partIds.map(pid => users.find(u => u.id === pid)?.name).filter(Boolean).join(', ');
             return (
               <div key={m.id} className="person-row">
-                <div className="person-avatar" style={{background:'var(--primary)'}}>🔄</div>
+                <div className="person-avatar" style={{background:'var(--primary)'}}>ð</div>
                 <div className="person-info">
                   <div className="person-name">{m.description}</div>
-                  <div className="person-role">{freqLabel}{dayLabel ? ' · ' + dayLabel : ''} · {dur < 60 ? dur + ' min' : (dur/60) + ' hod'}</div>
+                  <div className="person-role">{freqLabel}{dayLabel ? ' Â· ' + dayLabel : ''} Â· {dur < 60 ? dur + ' min' : (dur/60) + ' hod'}</div>
                   {partNames && <div className="person-role" style={{fontSize:11, color:'var(--text-secondary)'}}>{partNames}</div>}
                 </div>
               </div>
@@ -1455,7 +1455,7 @@ function CompanyDetail({ company, users, entries, getCompanyBudget, onBack, onDe
           <div key={mk} className="month-group">
             <div className="month-header">
               <span>{getMonthLabel(mk)}</span>
-              <span>{formatHours(monthTotal)} · {formatCzk(monthCzk)} bez DPH</span>
+              <span>{formatHours(monthTotal)} Â· {formatCzk(monthCzk)} bez DPH</span>
             </div>
             <div className="task-list">
               {items.map(e => (
@@ -1490,7 +1490,7 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
 
   const handleSave = () => {
     const totalMins = (parseInt(editHours)||0)*60 + (parseInt(editMins)||0);
-    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
+    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     if (!editDesc.trim()) return;
     onUpdate(entry.id, {
       description: editDesc.trim(),
@@ -1514,8 +1514,8 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
     return (
       <div className="card" style={{padding:12, marginBottom:4, background:'var(--primary-light)', border:'1px solid var(--primary)'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-          <span style={{fontSize:13,fontWeight:600,color:'var(--primary)'}}>Upravit záznam</span>
-          <button className="btn-icon" onClick={handleCancel} title="Zrušit" style={{width:28,height:28}}>
+          <span style={{fontSize:13,fontWeight:600,color:'var(--primary)'}}>Upravit zÃ¡znam</span>
+          <button className="btn-icon" onClick={handleCancel} title="ZruÅ¡it" style={{width:28,height:28}}>
             <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.x}</span>
           </button>
         </div>
@@ -1539,8 +1539,8 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
           <input className="input" type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{width:140,fontSize:13}} />
         </div>
         <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
-          <button className="btn btn-outline btn-sm" onClick={handleCancel}>Zrušit</button>
-          <button className="btn btn-primary btn-sm" onClick={handleSave}>Uložit</button>
+          <button className="btn btn-outline btn-sm" onClick={handleCancel}>ZruÅ¡it</button>
+          <button className="btn btn-primary btn-sm" onClick={handleSave}>UloÅ¾it</button>
         </div>
       </div>
     );
@@ -1552,12 +1552,12 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
       <div className="task-info">
         <div className="task-desc">{entry.description}</div>
         <div className="task-meta">
-          {showUser && user ? `${user.name} · ` : ''}{comp?.name} · {formatDate(entry.date)} {entry.is_manual && '· ruční'}{entry.updated_at && ` · editováno ${new Date(entry.updated_at).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}
+          {showUser && user ? `${user.name} Â· ` : ''}{comp?.name} Â· {formatDate(entry.date)} {entry.is_manual && 'Â· ruÄnÃ­'}{entry.updated_at && ` Â· editovÃ¡no ${new Date(entry.updated_at).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}
         </div>
       </div>
       <div className="task-time">{formatHours(entry.duration_min)}</div>
       {isLocked ? (
-        <div title="Uzamčeno — vyfakturováno" style={{width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)',opacity:0.5}}>
+        <div title="UzamÄeno â vyfakturovÃ¡no" style={{width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)',opacity:0.5}}>
           <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.lock}</span>
         </div>
       ) : canEdit ? (
@@ -1617,7 +1617,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const handleAddManual = () => {
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
-    if (totalMins < 15) { alert('Minimální délka tasku je 15 minut'); return; }
+    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     const participantIds = taskParticipants.length > 0 ? taskParticipants : [currentUser.id];
     participantIds.forEach(userId => {
       selCompanies.forEach(compId => {
@@ -1643,7 +1643,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             {new Date(timerElapsed).toISOString().substr(11,8)}
           </div>
           <button className="btn btn-danger" style={{width:'100%'}} onClick={onStopTimer}>
-            <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.stop}</span> Zastavit a uložit
+            <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.stop}</span> Zastavit a uloÅ¾it
           </button>
         </div>
       ) : (
@@ -1651,10 +1651,10 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           {/* Mode toggle */}
           <div style={{display:'flex',gap:0,marginBottom:10}}>
             <button onClick={()=>setTrackMode('task')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px 0 0 8px',background:trackMode==='task'?'var(--primary)':'var(--surface)',color:trackMode==='task'?'white':'var(--text-secondary)',cursor:'pointer',borderRight:'none'}}>
-              Nový task
+              NovÃ½ task
             </button>
             <button onClick={()=>setTrackMode('meeting')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'0 8px 8px 0',background:trackMode==='meeting'?'var(--primary)':'var(--surface)',color:trackMode==='meeting'?'white':'var(--text-secondary)',cursor:'pointer'}}>
-              Opakovaný task
+              OpakovanÃ½ task
             </button>
           </div>
 
@@ -1663,7 +1663,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           {/* Company selector */}
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
             <span style={{fontSize:13,fontWeight:500,color:'var(--text-secondary)'}}>Firma</span>
-            {selCompanies.length > 1 && <span style={{fontSize:11,color:'var(--primary)',fontWeight:500}}>{selCompanies.length} firem vybráno — task se přidá ke všem</span>}
+            {selCompanies.length > 1 && <span style={{fontSize:11,color:'var(--primary)',fontWeight:500}}>{selCompanies.length} firem vybrÃ¡no â task se pÅidÃ¡ ke vÅ¡em</span>}
           </div>
           <div className="company-pills">
             {companies.filter(c => c.is_active).map(c => {
@@ -1683,7 +1683,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             <input
               ref={el => setDescInputRef(el)}
               className="input"
-              placeholder="Co jdeš dělat?"
+              placeholder="Co jdeÅ¡ dÄlat?"
               value={desc}
               onChange={e=>setDesc(e.target.value)}
               onFocus={() => setShowDescSuggestions(true)}
@@ -1710,7 +1710,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             {/* Right: Manual entry */}
             <div style={{border:'1px solid var(--border)',borderRadius:8,padding:12}}>
               <div style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',marginBottom:8}}>
-                Ruční zadání
+                RuÄnÃ­ zadÃ¡nÃ­
               </div>
 
               <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:8}}>
@@ -1723,7 +1723,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                     if (diff > 0) { setHours(String(Math.floor(diff/60))); setMins(String(diff%60)); }
                   }
                 }} style={{flex:1,fontSize:13,minWidth:70}} />
-                <span style={{fontSize:12,color:'var(--text-secondary)'}}>–</span>
+                <span style={{fontSize:12,color:'var(--text-secondary)'}}>â</span>
                 <input className="input" type="time" value={timeToStr} onChange={e=>{
                   setTimeToStr(e.target.value);
                   if (timeFromStr && e.target.value) {
@@ -1743,7 +1743,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               <input className="input" type="date" value={date} onChange={e=>setDate(e.target.value)} style={{marginBottom:8,fontSize:13}} />
 
               <button className="btn btn-primary" style={{width:'100%',fontSize:13}} onClick={handleAddManual}>
-                Uložit
+                UloÅ¾it
               </button>
             </div>
           </div>
@@ -1754,7 +1754,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
           <div>
             <div style={{marginBottom:12}}>
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis</label>
-              <input className="input" placeholder="Název opakovaného tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
+              <input className="input" placeholder="NÃ¡zev opakovanÃ©ho tasku" value={meetingDesc} onChange={e=>setMeetingDesc(e.target.value)} />
             </div>
 
             <div style={{marginBottom:12}}>
@@ -1779,9 +1779,9 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             <div style={{marginBottom:12}}>
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Frekvence</label>
               <div style={{display:'flex',gap:6}}>
-                <button onClick={()=>setMeetingFreq('daily')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='daily'?'var(--primary)':'var(--surface)',color:meetingFreq==='daily'?'white':'var(--text)',cursor:'pointer'}}>Denní</button>
-                <button onClick={()=>setMeetingFreq('weekly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='weekly'?'var(--primary)':'var(--surface)',color:meetingFreq==='weekly'?'white':'var(--text)',cursor:'pointer'}}>Týdenní</button>
-                <button onClick={()=>setMeetingFreq('monthly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='monthly'?'var(--primary)':'var(--surface)',color:meetingFreq==='monthly'?'white':'var(--text)',cursor:'pointer'}}>Měsíční</button>
+                <button onClick={()=>setMeetingFreq('daily')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='daily'?'var(--primary)':'var(--surface)',color:meetingFreq==='daily'?'white':'var(--text)',cursor:'pointer'}}>DennÃ­</button>
+                <button onClick={()=>setMeetingFreq('weekly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='weekly'?'var(--primary)':'var(--surface)',color:meetingFreq==='weekly'?'white':'var(--text)',cursor:'pointer'}}>TÃ½dennÃ­</button>
+                <button onClick={()=>setMeetingFreq('monthly')} style={{flex:1,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingFreq==='monthly'?'var(--primary)':'var(--surface)',color:meetingFreq==='monthly'?'white':'var(--text)',cursor:'pointer'}}>MÄsÃ­ÄnÃ­</button>
               </div>
             </div>
 
@@ -1789,7 +1789,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Den</label>
               {meetingFreq === 'weekly' && (
                 <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                  {['Po','Út','St','Čt','Pá'].map((day, idx) => (
+                  {['Po','Ãt','St','Ät','PÃ¡'].map((day, idx) => (
                     <button key={idx} onClick={()=>setMeetingDay(idx+1)} style={{flex:1,minWidth:50,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingDay===idx+1?'var(--primary)':'var(--surface)',color:meetingDay===idx+1?'white':'var(--text)',cursor:'pointer'}}>{day}</button>
                   ))}
                 </div>
@@ -1800,7 +1800,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             </div>
 
             <div style={{marginBottom:12}}>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Délka na firmu</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>DÃ©lka na firmu</label>
               <select className="select" value={meetingDuration} onChange={e=>setMeetingDuration(Number(e.target.value))} style={{width:'100%'}}>
                 <option value={15}>15 minut</option>
                 <option value={30}>30 minut</option>
@@ -1814,7 +1814,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
             </div>
 
             <div style={{marginBottom:12}}>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Účastníci</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>ÃÄastnÃ­ci</label>
               <div style={{display:'flex',flexDirection:'column',gap:8}}>
                 {users.map(u => (
                   <label key={u.id} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontSize:14}}>
@@ -1836,12 +1836,12 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Platnost</label>
               <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:8}}>
                 <input className="input" type="date" value={meetingStartDate} onChange={e=>setMeetingStartDate(e.target.value)} style={{flex:1}} />
-                <span style={{fontSize:12,color:'var(--text-secondary)'}}>—</span>
+                <span style={{fontSize:12,color:'var(--text-secondary)'}}>â</span>
                 <input className="input" type="date" value={meetingIndefinite ? '' : meetingEndDate} onChange={e=>setMeetingEndDate(e.target.value)} disabled={meetingIndefinite === true} style={{flex:1, opacity: meetingIndefinite ? 0.4 : 1, cursor: meetingIndefinite ? 'not-allowed' : 'pointer'}} />
               </div>
               <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontSize:13}}>
                 <input type="checkbox" checked={meetingIndefinite} onChange={e=>setMeetingIndefinite(e.target.checked)} />
-                Dokud nezruším
+                Dokud nezruÅ¡Ã­m
               </label>
             </div>
 
@@ -1849,9 +1849,9 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               const missing = [];
               if (!meetingDesc) missing.push('Popis');
               if (meetingCompanies.length === 0) missing.push('Firmy');
-              if (!meetingStartDate) missing.push('Datum začátku');
+              if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
               if (missing.length > 0) {
-                alert('Vyplňte prosím: ' + missing.join(', '));
+                alert('VyplÅte prosÃ­m: ' + missing.join(', '));
                 return;
               }
               const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
@@ -1880,7 +1880,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                     const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                     setRecurringMeetings([...recurringMeetings, newMeeting]);
                   }
-                } catch(err) { console.error('Error saving meeting:', err); alert('Chyba při ukládání:' + err.message); }
+                } catch(err) { console.error('Error saving meeting:', err); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
               })();
 
               // Send email notification
@@ -1888,18 +1888,18 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               const otherParticipants = allParticipants.filter(uid => uid !== currentUser.id);
               if (otherParticipants.length > 0) {
                 const emails = otherParticipants.map(uid => users.find(u=>u.id===uid)?.email).filter(Boolean).join(',');
-                const freqLabel = meetingFreq === 'daily' ? 'Denně' : meetingFreq === 'weekly' ? 'Každý týden' : 'Každý měsíc';
+                const freqLabel = meetingFreq === 'daily' ? 'DennÄ' : meetingFreq === 'weekly' ? 'KaÅ¾dÃ½ tÃ½den' : 'KaÅ¾dÃ½ mÄsÃ­c';
                 const durationLabel = meetingDuration < 60 ? meetingDuration + ' minut' : meetingDuration === 60 ? '1 hodina' : (meetingDuration / 60) + ' hodin';
                 const companyNames = meetingCompanies.map(cid => companies.find(c => c.id === cid)?.name).join(', ');
-                const subject = encodeURIComponent('Jokes Aside – Pozvánka na pravidelný meeting: ' + meetingDesc);
+                const subject = encodeURIComponent('Jokes Aside â PozvÃ¡nka na pravidelnÃ½ meeting: ' + meetingDesc);
                 const body = encodeURIComponent(
-                  'Dobrý den,\n\n' +
-                  'byli jste přidáni do opakovaného tasku "' + meetingDesc + '".\n\n' +
+                  'DobrÃ½ den,\n\n' +
+                  'byli jste pÅidÃ¡ni do opakovanÃ©ho tasku "' + meetingDesc + '".\n\n' +
                   'Frekvence: ' + freqLabel + '\n' +
-                  'Délka: ' + durationLabel + ' na firmu\n' +
+                  'DÃ©lka: ' + durationLabel + ' na firmu\n' +
                   'Firmy: ' + companyNames + '\n\n' +
-                  'Potvrďte prosím svou účast v trackeru:\n' + window.location.href + '\n\n' +
-                  'Děkuji,\n' + currentUser.name
+                  'PotvrÄte prosÃ­m svou ÃºÄast v trackeru:\n' + window.location.href + '\n\n' +
+                  'DÄkuji,\n' + currentUser.name
                 );
                 if (emails) {
                   window.open('mailto:' + emails + '?subject=' + subject + '&body=' + body, '_blank');
@@ -1917,14 +1917,14 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               setMeetingEndDate('');
               setMeetingIndefinite(true);
               setTrackMode('task');
-            }}>Uložit meeting</button>
+            }}>UloÅ¾it meeting</button>
           </div>
           )}
         </div>
       )}
 
       {/* Recent entries grouped by date with daily totals */}
-      <div className="section-title">Moje záznamy</div>
+      <div className="section-title">Moje zÃ¡znamy</div>
       <div className="task-list">
         {(() => {
           const grouped = {};
@@ -2059,7 +2059,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     const genDate = new Date().toLocaleDateString('cs-CZ');
     const VAT_RATE = 0.21;
 
-    const fmtK = (n) => Math.round(n).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' Kč';
+    const fmtK = (n) => Math.round(n).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' KÄ';
 
     const createPDFDoc = (title, companyName) => {
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -2095,8 +2095,8 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
       doc.setFontSize(9);
       doc.text(title + (companyName ? ' \u2013 ' + companyName : ''), ml, 21);
       doc.setFontSize(7.5);
-      doc.text('Období: ' + dateFrom + ' až ' + dateTo, ml, 28);
-      doc.text('Vygenerováno: ' + genDate + ' (' + (currentUser?.name || '') + ')', pw - mr, 28, { align: 'right' });
+      doc.text('ObdobÃ­: ' + dateFrom + ' aÅ¾ ' + dateTo, ml, 28);
+      doc.text('VygenerovÃ¡no: ' + genDate + ' (' + (currentUser?.name || '') + ')', pw - mr, 28, { align: 'right' });
       y = 40;
 
       return { doc, pw, ph, ml, mr, cw, yRef: { v: y }, footer };
@@ -2134,7 +2134,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
       doc.text('Celkem bez DPH: ' + fmtK(compCzk), bx, yRef.v + 7);
       doc.setFont('Lato', 'normal'); doc.setFontSize(8); doc.setTextColor(...gray);
       doc.text('DPH 21%: ' + fmtK(compVat) + '   |   Celkem s DPH: ' + fmtK(compTotal), bx, yRef.v + 13);
-      doc.text(formatHours(compMins) + '  |  ' + compEntries.length + ' záznamů', bx, yRef.v + 18.5);
+      doc.text(formatHours(compMins) + '  |  ' + compEntries.length + ' zÃ¡znamÅ¯', bx, yRef.v + 18.5);
       yRef.v += 28;
 
       // Per user tables
@@ -2145,12 +2145,12 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
         // User header
         doc.setFont('Lato', 'bold'); doc.setFontSize(8); doc.setTextColor(...dark);
-        doc.text(user?.name + ' (' + (user?.hourly_rate || 0).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' Kč/h)', ml + 1, yRef.v + 3);
+        doc.text(user?.name + ' (' + (user?.hourly_rate || 0).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' KÄ/h)', ml + 1, yRef.v + 3);
         doc.setFont('Lato', 'normal'); doc.setTextColor(...gray);
         doc.text(formatHours(data.mins) + ' | ' + fmtK(data.czk) + ' bez DPH', pw - mr - 1, yRef.v + 3, { align: 'right' });
         yRef.v += 6;
 
-        // Entries table: Datum | Popis | Čas | Bez DPH | DPH | S DPH
+        // Entries table: Datum | Popis | Äas | Bez DPH | DPH | S DPH
         const tw = cw - 2; // table width
         const c0 = 17; // datum
         const c2 = 13; // cas
@@ -2181,7 +2181,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
           startY: yRef.v,
           margin: { left: ml + 1, right: mr + 1 },
           tableWidth: tw,
-          head: [['Datum', 'Popis', 'Čas', 'Bez DPH', 'DPH', 'S DPH']],
+          head: [['Datum', 'Popis', 'Äas', 'Bez DPH', 'DPH', 'S DPH']],
           body: tData,
           theme: 'plain',
           styles: {
@@ -2230,7 +2230,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     });
 
     // ===== SUMMARY PDF =====
-    const { doc: sd, pw: sp, ph: sph, ml: sm, mr: smr, cw: sc, yRef: sy, footer: sf } = createPDFDoc('Souhrnný přehled fakturace', null);
+    const { doc: sd, pw: sp, ph: sph, ml: sm, mr: smr, cw: sc, yRef: sy, footer: sf } = createPDFDoc('SouhrnnÃ½ pÅehled fakturace', null);
 
     // Stats box
     let grandCzk = totalCzk;
@@ -2269,7 +2269,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
       startY: sy.v,
       margin: { left: sm + 1, right: smr + 1 },
       tableWidth: sTw,
-      head: [['Firma', 'Čas', 'Bez DPH', 'DPH', 'S DPH']],
+      head: [['Firma', 'Äas', 'Bez DPH', 'DPH', 'S DPH']],
       body: sData,
       theme: 'plain',
       styles: {
@@ -2315,7 +2315,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
       {/* Tabs */}
       <div className="tabs">
-        <button className={`tab ${activeTab==='reports'?'active':''}`} onClick={()=>setActiveTab('reports')}>Přehledy</button>
+        <button className={`tab ${activeTab==='reports'?'active':''}`} onClick={()=>setActiveTab('reports')}>PÅehledy</button>
         <button className={`tab ${activeTab==='invoice'?'active':''}`} onClick={()=>setActiveTab('invoice')}>
           Fakturace
           {billingLocks.length > 0 && <span className="badge badge-success" style={{marginLeft:6}}>{billingLocks.length}</span>}
@@ -2326,23 +2326,23 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
       <div style={{display:'flex',gap:6,marginBottom:12}}>
         {['day','week','month'].map(p => (
           <button key={p} className={`btn btn-sm ${period===p?'btn-primary':'btn-outline'}`} onClick={()=>setPresetPeriod(p)}>
-            {p==='day'?'Den':p==='week'?'Týden':'Měsíc'}
+            {p==='day'?'Den':p==='week'?'TÃ½den':'MÄsÃ­c'}
           </button>
         ))}
       </div>
       <div className="filter-row">
         <input className="input" type="date" value={dateFrom} onChange={e=>{setDateFrom(e.target.value);setPeriod('custom');}} style={{flex:1}} />
-        <span style={{alignSelf:'center',color:'var(--text-secondary)'}}>—</span>
+        <span style={{alignSelf:'center',color:'var(--text-secondary)'}}>â</span>
         <input className="input" type="date" value={dateTo} onChange={e=>{setDateTo(e.target.value);setPeriod('custom');}} style={{flex:1}} />
       </div>
       {activeTab === 'reports' && (
         <div className="filter-row">
           <select className="select input" value={filterCompany} onChange={e=>setFilterCompany(e.target.value)} style={{flex:1}}>
-            <option value="all">Všechny firmy</option>
+            <option value="all">VÅ¡echny firmy</option>
             {companies.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <select className="select input" value={filterUser} onChange={e=>setFilterUser(e.target.value)} style={{flex:1}}>
-            <option value="all">Všichni lidé</option>
+            <option value="all">VÅ¡ichni lidÃ©</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
@@ -2355,7 +2355,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
           {isPeriodLocked && (
             <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',background:'#fef3c7',borderRadius:8,marginBottom:12,fontSize:13,color:'#92400e'}}>
               <span style={{width:16,height:16,display:'inline-flex',flexShrink:0}}>{Icons.lock}</span>
-              Toto období je uzamčeno (vyfakturováno). Záznamy nelze editovat.
+              Toto obdobÃ­ je uzamÄeno (vyfakturovÃ¡no). ZÃ¡znamy nelze editovat.
             </div>
           )}
 
@@ -2377,7 +2377,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
             </div>
             <div className="stat-box">
               <div className="stat-value">{uniqueUsers}</div>
-              <div className="stat-label">Lidí</div>
+              <div className="stat-label">LidÃ­</div>
             </div>
           </div>
 
@@ -2391,7 +2391,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                 <div key={cid} style={{marginBottom:10}}>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:14,fontWeight:500,marginBottom:2}}>
                     <span>{comp?.name}</span>
-                    <span>{formatHours(data.mins)} · {formatCzk(data.czk)} bez DPH</span>
+                    <span>{formatHours(data.mins)} Â· {formatCzk(data.czk)} bez DPH</span>
                   </div>
                   <div style={{fontSize:11,color:'var(--text-secondary)',textAlign:'right',marginTop:3,marginBottom:3}}>s DPH: {formatCzk(withDph(data.czk))}</div>
                   <div className="progress-bar">
@@ -2404,14 +2404,14 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
           {/* By user */}
           <div className="card" style={{marginBottom:12}}>
-            <div className="section-title">Podle lidí</div>
+            <div className="section-title">Podle lidÃ­</div>
             {Object.entries(byUser).sort((a,b)=>b[1].czk-a[1].czk).map(([uid, data]) => {
               const user = users.find(u=>u.id===uid);
               return (
                 <div key={uid} className="person-row" style={{padding:'8px 0'}}>
                   <div className="person-info">
                     <div className="person-name">{user?.name}</div>
-                    <div className="person-role">{user?.position} · {formatCzk(data.czk)} bez DPH · s DPH: {formatCzk(withDph(data.czk))}</div>
+                    <div className="person-role">{user?.position} Â· {formatCzk(data.czk)} bez DPH Â· s DPH: {formatCzk(withDph(data.czk))}</div>
                   </div>
                   <div className="person-hours">{formatHours(data.mins)}</div>
                 </div>
@@ -2421,7 +2421,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
           {/* Entries detail */}
           <div className="card">
-            <div className="section-title">Jednotlivé záznamy ({filtered.length})</div>
+            <div className="section-title">JednotlivÃ© zÃ¡znamy ({filtered.length})</div>
             <div className="task-list">
               {filtered.sort((a,b)=>b.date.localeCompare(a.date)).map(e => {
                 const user = users.find(u=>u.id===e.user_id);
@@ -2432,11 +2432,11 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                     <div className="task-dot" style={{background: comp?.color || '#999'}} />
                     <div className="task-info">
                       <div className="task-desc">{e.description}</div>
-                      <div className="task-meta">{user?.name} · {comp?.name} · {formatDate(e.date)}</div>
+                      <div className="task-meta">{user?.name} Â· {comp?.name} Â· {formatDate(e.date)}</div>
                     </div>
                     <div className="task-time">{formatHours(e.duration_min)}</div>
                     {locked && (
-                      <span style={{width:14,height:14,display:'inline-flex',color:'var(--text-secondary)',opacity:0.5}} title="Uzamčeno">
+                      <span style={{width:14,height:14,display:'inline-flex',color:'var(--text-secondary)',opacity:0.5}} title="UzamÄeno">
                         {Icons.lock}
                       </span>
                     )}
@@ -2455,7 +2455,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
           {invoiceGenerated && (
             <div style={{display:'flex',alignItems:'center',gap:8,padding:'12px 16px',background:'#d1fae5',borderRadius:8,marginBottom:12,fontSize:14,color:'#065f46',fontWeight:500}}>
               <span style={{width:18,height:18,display:'inline-flex'}}>{Icons.check}</span>
-              Fakturační podklad vygenerován. Záznamy za toto období jsou uzamčeny.
+              FakturaÄnÃ­ podklad vygenerovÃ¡n. ZÃ¡znamy za toto obdobÃ­ jsou uzamÄeny.
             </div>
           )}
 
@@ -2464,35 +2464,35 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
             <div className="card" style={{marginBottom:16,borderColor:'var(--success)',background:'#f0fdf4'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <span style={{width:20,height:20,display:'inline-flex',color:'var(--success)'}}>{Icons.lock}</span>
-                <span style={{fontWeight:700,color:'var(--success)'}}>Období uzamčeno</span>
+                <span style={{fontWeight:700,color:'var(--success)'}}>ObdobÃ­ uzamÄeno</span>
               </div>
               <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:10}}>
-                Období {dateFrom} — {dateTo} bylo vyfakturováno. Záznamy v tomto období nelze editovat ani mazat.
+                ObdobÃ­ {dateFrom} â {dateTo} bylo vyfakturovÃ¡no. ZÃ¡znamy v tomto obdobÃ­ nelze editovat ani mazat.
               </div>
               <button className="btn btn-outline btn-sm" onClick={handleDownloadPDFOnly}>
-                <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.download}</span> Znovu stáhnout PDF
+                <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.download}</span> Znovu stÃ¡hnout PDF
               </button>
             </div>
           ) : hasOverlappingLock ? (
             <div className="card" style={{marginBottom:16,borderColor:'var(--warning)',background:'#fffbeb'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <span style={{width:20,height:20,display:'inline-flex',color:'var(--warning)'}}>{Icons.lock}</span>
-                <span style={{fontWeight:700,color:'#92400e'}}>Částečný překryv</span>
+                <span style={{fontWeight:700,color:'#92400e'}}>ÄÃ¡steÄnÃ½ pÅekryv</span>
               </div>
               <div style={{fontSize:13,color:'var(--text-secondary)'}}>
-                Vybrané období se částečně překrývá s již uzamčeným fakturačním obdobím. Vyberte jiný rozsah.
+                VybranÃ© obdobÃ­ se ÄÃ¡steÄnÄ pÅekrÃ½vÃ¡ s jiÅ¾ uzamÄenÃ½m fakturaÄnÃ­m obdobÃ­m. Vyberte jinÃ½ rozsah.
               </div>
             </div>
           ) : null}
 
           {/* Invoice summary per company */}
           <div className="section-title" style={{marginTop:4}}>
-            Podklad k fakturaci — {dateFrom} až {dateTo}
+            Podklad k fakturaci â {dateFrom} aÅ¾ {dateTo}
           </div>
 
           {filtered.length === 0 ? (
             <div className="card" style={{textAlign:'center',padding:24,color:'var(--text-secondary)'}}>
-              Žádné záznamy v tomto období
+              Å½Ã¡dnÃ© zÃ¡znamy v tomto obdobÃ­
             </div>
           ) : (
             <div>
@@ -2514,7 +2514,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                       <div style={{flex:1}}>
                         <div style={{fontWeight:700}}>{comp?.name}</div>
                         <div style={{fontSize:12,color:'var(--text-secondary)'}}>
-                          {Object.keys(userData).length} pracovníků · {formatHours(compTotalMins)}
+                          {Object.keys(userData).length} pracovnÃ­kÅ¯ Â· {formatHours(compTotalMins)}
                         </div>
                       </div>
                       <div style={{textAlign:'right'}}>
@@ -2530,12 +2530,12 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                       return (
                         <div key={uid} style={{marginBottom:10}}>
                           <div style={{display:'flex',justifyContent:'space-between',fontSize:13,fontWeight:600,marginBottom:4}}>
-                            <span>{user?.name} <span style={{fontWeight:400,color:'var(--text-secondary)'}}>({user?.position}, {user?.hourly_rate?.toLocaleString('cs-CZ')} Kč/h)</span></span>
-                            <span>{formatHours(data.mins)} · {formatCzk(data.czk)} bez DPH</span>
+                            <span>{user?.name} <span style={{fontWeight:400,color:'var(--text-secondary)'}}>({user?.position}, {user?.hourly_rate?.toLocaleString('cs-CZ')} KÄ/h)</span></span>
+                            <span>{formatHours(data.mins)} Â· {formatCzk(data.czk)} bez DPH</span>
                           </div>
                           {data.entries.sort((a,b)=>a.date.localeCompare(b.date)).map(e => (
                             <div key={e.id} style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--text-secondary)',padding:'2px 0 2px 12px'}}>
-                              <span>{formatDate(e.date)} — {e.description}</span>
+                              <span>{formatDate(e.date)} â {e.description}</span>
                               <span style={{whiteSpace:'nowrap'}}>{formatHours(e.duration_min)}</span>
                             </div>
                           ))}
@@ -2550,8 +2550,8 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
               <div className="card" style={{marginBottom:16,background:'var(--primary-light)',borderColor:'var(--primary)'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div>
-                    <div style={{fontWeight:700,fontSize:15}}>Celkem za období</div>
-                    <div style={{fontSize:13,color:'var(--text-secondary)'}}>{filtered.length} záznamů · {uniqueUsers} pracovníků · {uniqueCompanies} firem</div>
+                    <div style={{fontWeight:700,fontSize:15}}>Celkem za obdobÃ­</div>
+                    <div style={{fontSize:13,color:'var(--text-secondary)'}}>{filtered.length} zÃ¡znamÅ¯ Â· {uniqueUsers} pracovnÃ­kÅ¯ Â· {uniqueCompanies} firem</div>
                   </div>
                   <div style={{textAlign:'right'}}>
                     <div style={{fontWeight:700,fontSize:18,color:'var(--primary)'}}>{formatCzk(totalCzk)} bez DPH</div>
@@ -2562,11 +2562,11 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                 </div>
               </div>
 
-              {/* User finalization panel — visible to all users */}
+              {/* User finalization panel â visible to all users */}
               {!isPeriodLocked && !hasOverlappingLock && (
                 <div className="card" style={{marginBottom:16,background:'var(--bg)'}}>
                   <div style={{fontSize:13,fontWeight:600,color:'var(--text-secondary)',marginBottom:12}}>
-                    Finalizace pracovníků
+                    Finalizace pracovnÃ­kÅ¯
                   </div>
                   {(() => {
                     const periodKey = dateFrom + '_' + dateTo;
@@ -2579,9 +2579,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
                           <div style={{fontSize:13,color:'var(--text-secondary)'}}>
                             {allFinalized ? (
-                              <span style={{color:'var(--success)',fontWeight:600}}>Všichni finalizovali</span>
+                              <span style={{color:'var(--success)',fontWeight:600}}>VÅ¡ichni finalizovali</span>
                             ) : (
-                              <span>{finalizedCount}/{usersWithEntries.length} pracovníků finalizovalo</span>
+                              <span>{finalizedCount}/{usersWithEntries.length} pracovnÃ­kÅ¯ finalizovalo</span>
                             )}
                           </div>
                           {(currentUser?.is_admin || currentUser?.manager_id === null) && unfinalized.length > 0 && (
@@ -2589,18 +2589,18 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                               const trackerUrl = window.location.href;
                               const unfinalizedUsers = unfinalized.map(uid => users.find(u => u.id === uid)).filter(Boolean);
                               const emails = unfinalizedUsers.map(u => u.email).join(',');
-                              const subject = encodeURIComponent('Jokes Aside – Potvrďte finalizaci výkazů za ' + dateFrom + ' až ' + dateTo);
+                              const subject = encodeURIComponent('Jokes Aside â PotvrÄte finalizaci vÃ½kazÅ¯ za ' + dateFrom + ' aÅ¾ ' + dateTo);
                               const body = encodeURIComponent(
-                                'Dobrý den,\n\n' +
-                                'prosím o potvrzení finalizace vašich výkazů za období ' + dateFrom + ' až ' + dateTo + '.\n\n' +
-                                'Klikněte na odkaz níže a v sekci Reporty → Fakturace potvrďte, že vaše záznamy jsou finální:\n' +
+                                'DobrÃ½ den,\n\n' +
+                                'prosÃ­m o potvrzenÃ­ finalizace vaÅ¡ich vÃ½kazÅ¯ za obdobÃ­ ' + dateFrom + ' aÅ¾ ' + dateTo + '.\n\n' +
+                                'KliknÄte na odkaz nÃ­Å¾e a v sekci Reporty â Fakturace potvrÄte, Å¾e vaÅ¡e zÃ¡znamy jsou finÃ¡lnÃ­:\n' +
                                 trackerUrl + '\n\n' +
-                                'Dokud všichni nepotvrdí, fakturační podklad nelze uzamknout.\n\n' +
-                                'Děkuji,\n' + (currentUser?.name || 'Administrátor')
+                                'Dokud vÅ¡ichni nepotvrdÃ­, fakturaÄnÃ­ podklad nelze uzamknout.\n\n' +
+                                'DÄkuji,\n' + (currentUser?.name || 'AdministrÃ¡tor')
                               );
                               window.open('mailto:' + emails + '?subject=' + subject + '&body=' + body, '_blank');
                             }}>
-                              Upomínka e-mailem ({unfinalized.length})
+                              UpomÃ­nka e-mailem ({unfinalized.length})
                             </button>
                           )}
                         </div>
@@ -2619,15 +2619,15 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                                   }));
                                 }} style={{cursor: canToggle ? 'pointer' : 'not-allowed',accentColor:'var(--primary)'}} />
                                 <span style={{fontSize:13,flex:1,fontWeight: isMe ? 600 : 400}}>
-                                  {user?.name || 'Neznámý'}
-                                  {isMe && <span style={{fontSize:11,color:'var(--primary)',marginLeft:6}}>(já)</span>}
+                                  {user?.name || 'NeznÃ¡mÃ½'}
+                                  {isMe && <span style={{fontSize:11,color:'var(--primary)',marginLeft:6}}>(jÃ¡)</span>}
                                 </span>
                                 {isFinalized ? (
                                   <span style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'var(--success)',fontWeight:600}}>
-                                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.check}</span> Finalizováno
+                                    <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.check}</span> FinalizovÃ¡no
                                   </span>
                                 ) : (
-                                  <span style={{fontSize:11,color:'var(--text-secondary)'}}>Čeká na potvrzení</span>
+                                  <span style={{fontSize:11,color:'var(--text-secondary)'}}>ÄekÃ¡ na potvrzenÃ­</span>
                                 )}
                               </div>
                             );
@@ -2639,7 +2639,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                               setUserFinalizations(prev => ({ ...prev, [periodKey + '_' + uid]: true }));
                             });
                           }}>
-                            Schválit za všechny (admin)
+                            SchvÃ¡lit za vÅ¡echny (admin)
                           </button>
                         )}
 
@@ -2664,7 +2664,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                                   }]).select();
                                   if (!error && data?.[0]) setApprovalRequests(prev => [...prev, data[0]]);
                                 }}>
-                                  Odeslat ke schválení ({managerName})
+                                  Odeslat ke schvÃ¡lenÃ­ ({managerName})
                                 </button>
                               )}
                               {hasManager && myRequest && (
@@ -2672,33 +2672,33 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                                   background: myRequest.status==='approved'?'#f0fdf4': myRequest.status==='rejected'?'#fef2f2':'#fffbeb',
                                   color: myRequest.status==='approved'?'var(--success)': myRequest.status==='rejected'?'var(--danger)':'#b45309',
                                   fontWeight:600,marginBottom:8}}>
-                                  {myRequest.status==='pending' && 'Čeká na schválení manažerem'}
-                                  {myRequest.status==='approved' && 'Schváleno manažerem'}
-                                  {myRequest.status==='rejected' && ('Zamítnuto: ' + (myRequest.note || 'bez důvodu'))}
+                                  {myRequest.status==='pending' && 'ÄekÃ¡ na schvÃ¡lenÃ­ manaÅ¾erem'}
+                                  {myRequest.status==='approved' && 'SchvÃ¡leno manaÅ¾erem'}
+                                  {myRequest.status==='rejected' && ('ZamÃ­tnuto: ' + (myRequest.note || 'bez dÅ¯vodu'))}
                                 </div>
                               )}
 
                               {/* Review section for managers */}
                               {pendingForMe.length > 0 && (
                                 <div style={{marginTop:8,padding:12,background:'#fffbeb',borderRadius:8,border:'1px solid #fbbf24'}}>
-                                  <div style={{fontWeight:600,fontSize:13,marginBottom:8,color:'#b45309'}}>Ke schválení ({pendingForMe.length})</div>
+                                  <div style={{fontWeight:600,fontSize:13,marginBottom:8,color:'#b45309'}}>Ke schvÃ¡lenÃ­ ({pendingForMe.length})</div>
                                   {pendingForMe.map(ar => {
                                     const arUser = users.find(u => u.id === ar.user_id);
                                     return (
                                       <div key={ar.id} style={{display:'flex',alignItems:'center',gap:8,padding:8,background:'white',borderRadius:6,marginBottom:6}}>
-                                        <span style={{flex:1,fontSize:13,fontWeight:500}}>{arUser?.name || 'Neznámý'}</span>
+                                        <span style={{flex:1,fontSize:13,fontWeight:500}}>{arUser?.name || 'NeznÃ¡mÃ½'}</span>
                                         <button className="btn btn-sm" style={{background:'var(--success)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
                                           if (!window.__supabase) return;
                                           await window.__supabase.from('approval_requests').update({status:'approved',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id}).eq('id',ar.id);
                                           setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'approved',reviewer_id:currentUser.id} : a));
-                                        }}>Schválit</button>
+                                        }}>SchvÃ¡lit</button>
                                         <button className="btn btn-sm" style={{background:'var(--danger)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
-                                          const note = prompt('Důvod zamítnutí:');
+                                          const note = prompt('DÅ¯vod zamÃ­tnutÃ­:');
                                           if (note === null) return;
                                           if (!window.__supabase) return;
                                           await window.__supabase.from('approval_requests').update({status:'rejected',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id,note}).eq('id',ar.id);
                                           setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'rejected',reviewer_id:currentUser.id,note} : a));
-                                        }}>Zamítnout</button>
+                                        }}>ZamÃ­tnout</button>
                                       </div>
                                     );
                                   })}
@@ -2730,13 +2730,13 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                     <div className="card" style={{borderColor:'var(--danger)',background:'#fef2f2'}}>
                       <div style={{fontWeight:600,marginBottom:8,color:'var(--danger)'}}>
                         <span style={{width:16,height:16,display:'inline-flex',verticalAlign:'middle',marginRight:6}}>{Icons.lock}</span>
-                        Opravdu uzamknout období?
+                        Opravdu uzamknout obdobÃ­?
                       </div>
                       <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-                        Po vygenerování fakturačního podkladu se uzamknou všechny záznamy za období {dateFrom} — {dateTo}. Pracovníci je již nebudou moci zpětně editovat ani mazat. Tato akce je nevratná.
+                        Po vygenerovÃ¡nÃ­ fakturaÄnÃ­ho podkladu se uzamknou vÅ¡echny zÃ¡znamy za obdobÃ­ {dateFrom} â {dateTo}. PracovnÃ­ci je jiÅ¾ nebudou moci zpÄtnÄ editovat ani mazat. Tato akce je nevratnÃ¡.
                       </div>
                       <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                        <button className="btn btn-outline btn-sm" onClick={()=>setShowInvoiceConfirm(false)}>Zrušit</button>
+                        <button className="btn btn-outline btn-sm" onClick={()=>setShowInvoiceConfirm(false)}>ZruÅ¡it</button>
                         <button className="btn btn-danger btn-sm" onClick={handleGenerateInvoice}>
                           <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a vygenerovat
                         </button>
@@ -2745,7 +2745,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                   ) : (
                     <div style={{display:'flex',gap:8}}>
                       <button className="btn btn-outline" style={{flex:1}} onClick={handleDownloadPDFOnly}>
-                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.download}</span> Stáhnout PDF
+                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.download}</span> StÃ¡hnout PDF
                       </button>
                       <button className="btn btn-primary" style={{flex:1}} onClick={()=>setShowInvoiceConfirm(true)} disabled={(() => {
                         const periodKey = dateFrom + '_' + dateTo;
@@ -2753,7 +2753,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                         const finalizedCount = usersWithEntries.filter(uid => userFinalizations[periodKey + '_' + uid]).length;
                         return finalizedCount < usersWithEntries.length;
                       })()}>
-                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a stáhnout
+                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a stÃ¡hnout
                       </button>
                     </div>
                   )}
@@ -2765,15 +2765,15 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
           {/* Existing locks list */}
           {billingLocks.length > 0 && (
             <div style={{marginTop:20}}>
-              <div className="section-title">Uzamčená období</div>
+              <div className="section-title">UzamÄenÃ¡ obdobÃ­</div>
               {billingLocks.sort((a,b)=>b.date_from.localeCompare(a.date_from)).map(lock => (
                 <div key={lock.id} className="task-item" style={{marginBottom:4}}>
                   <span style={{width:16,height:16,display:'inline-flex',color:'var(--success)',flexShrink:0}}>{Icons.lock}</span>
                   <div className="task-info">
-                    <div className="task-desc">{lock.date_from} — {lock.date_to}</div>
-                    <div className="task-meta">Uzamknul/a {users.find(u=>u.id===lock.generated_by)?.name || 'Neznámý'} · {new Date(lock.generated_at).toLocaleDateString('cs-CZ')} {new Date(lock.generated_at).toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})}</div>
+                    <div className="task-desc">{lock.date_from} â {lock.date_to}</div>
+                    <div className="task-meta">Uzamknul/a {users.find(u=>u.id===lock.generated_by)?.name || 'NeznÃ¡mÃ½'} Â· {new Date(lock.generated_at).toLocaleDateString('cs-CZ')} {new Date(lock.generated_at).toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})}</div>
                   </div>
-                  <span className="badge badge-success">Uzamčeno</span>
+                  <span className="badge badge-success">UzamÄeno</span>
                 </div>
               ))}
             </div>
@@ -2806,8 +2806,8 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
   const activeMeetings = recurringMeetings.filter(m => m.isActive);
   const inactiveMeetings = recurringMeetings.filter(m => !m.isActive);
 
-  const freqLabels = { daily: 'Denně', weekly: 'Týdně', monthly: 'Měsíčně' };
-  const dayLabels = ['Ne','Po','Út','St','Čt','Pá','So'];
+  const freqLabels = { daily: 'DennÄ', weekly: 'TÃ½dnÄ', monthly: 'MÄsÃ­ÄnÄ' };
+  const dayLabels = ['Ne','Po','Ãt','St','Ät','PÃ¡','So'];
 
   const startEdit = (m) => {
     setEditingId(m.id);
@@ -2851,12 +2851,12 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       } : m));
       setEditingId(null);
     } catch (err) {
-      alert('Chyba při ukládání: ' + err.message);
+      alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + err.message);
     }
   };
 
   const deleteMeeting = async (id) => {
-    if (!confirm('Opravdu chcete smazat tento meeting? Již vygenerované záznamy zůstanou.')) return;
+    if (!confirm('Opravdu chcete smazat tento meeting? JiÅ¾ vygenerovanÃ© zÃ¡znamy zÅ¯stanou.')) return;
     try {
       const sb = window.__supabase;
       if (sb) {
@@ -2865,7 +2865,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       }
       setRecurringMeetings(recurringMeetings.filter(m => m.id !== id));
     } catch (err) {
-      alert('Chyba při mazání: ' + err.message);
+      alert('Chyba pÅi mazÃ¡nÃ­: ' + err.message);
     }
   };
 
@@ -2889,8 +2889,8 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
     const missing = [];
     if (!newDesc) missing.push('Popis');
     if (newCompanies.length === 0) missing.push('Firmy');
-    if (!newStartDate) missing.push('Datum začátku');
-    if (missing.length > 0) { alert('Vyplňte prosím: ' + missing.join(', ')); return; }
+    if (!newStartDate) missing.push('Datum zaÄÃ¡tku');
+    if (missing.length > 0) { alert('VyplÅte prosÃ­m: ' + missing.join(', ')); return; }
     const allParts = [currentUser.id, ...newParticipants.filter(id => id !== currentUser.id)];
     const meetingData = {
       description: newDesc,
@@ -2920,7 +2920,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       setNewDay(1); setNewDayOfMonth(1); setNewDuration(60);
       setNewStartDate(new Date().toISOString().slice(0,10)); setNewEndDate(''); setNewIndefinite(true);
       setShowNew(false);
-    } catch (err) { alert('Chyba při ukládání: ' + err.message); }
+    } catch (err) { alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + err.message); }
   };
 
   const renderMeetingCard = (m) => {
@@ -2950,7 +2950,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             </div>
           </div>
           <div style={{marginBottom:10}}>
-            <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Účastníci</label>
+            <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>ÃÄastnÃ­ci</label>
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {users.map(u=>(
                 <label key={u.id} style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
@@ -2966,11 +2966,11 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             <div>
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Frekvence</label>
               <select className="input" value={editForm.frequency} onChange={e=>setEditForm({...editForm, frequency:e.target.value})}>
-                <option value="daily">Denně</option><option value="weekly">Týdně</option><option value="monthly">Měsíčně</option>
+                <option value="daily">DennÄ</option><option value="weekly">TÃ½dnÄ</option><option value="monthly">MÄsÃ­ÄnÄ</option>
               </select>
             </div>
             <div>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Délka (min)</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>DÃ©lka (min)</label>
               <select className="input" value={editForm.durationMin} onChange={e=>setEditForm({...editForm, durationMin:parseInt(e.target.value)})}>
                 <option value={15}>15 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>1 hod</option><option value={90}>1.5 hod</option><option value={120}>2 hod</option><option value={180}>3 hod</option><option value={240}>4 hod</option>
               </select>
@@ -2988,16 +2988,16 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Platnost</label>
             <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:6}}>
               <input className="input" type="date" value={editForm.startDate} onChange={e=>setEditForm({...editForm,startDate:e.target.value})} style={{flex:1}} />
-              <span style={{fontSize:12,color:'var(--text-secondary)'}}>—</span>
+              <span style={{fontSize:12,color:'var(--text-secondary)'}}>â</span>
               <input className="input" type="date" value={editForm.indefinite?'':editForm.endDate} onChange={e=>setEditForm({...editForm,endDate:e.target.value})} disabled={editForm.indefinite} style={{flex:1,opacity:editForm.indefinite?0.4:1}} />
             </div>
             <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
-              <input type="checkbox" checked={editForm.indefinite} onChange={e=>setEditForm({...editForm,indefinite:e.target.checked})} /> Dokud nezruším
+              <input type="checkbox" checked={editForm.indefinite} onChange={e=>setEditForm({...editForm,indefinite:e.target.checked})} /> Dokud nezruÅ¡Ã­m
             </label>
           </div>
           <div style={{display:'flex',gap:8,marginTop:12}}>
-            <button className="btn btn-primary" style={{flex:1}} onClick={saveEdit}>Uložit</button>
-            <button className="btn" style={{flex:1,border:'1px solid var(--border)'}} onClick={()=>setEditingId(null)}>Zrušit</button>
+            <button className="btn btn-primary" style={{flex:1}} onClick={saveEdit}>UloÅ¾it</button>
+            <button className="btn" style={{flex:1,border:'1px solid var(--border)'}} onClick={()=>setEditingId(null)}>ZruÅ¡it</button>
           </div>
         </div>
       );
@@ -3010,22 +3010,22 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>{m.description}</div>
             <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:4}}>
               {freqLabels[m.frequency] || m.frequency}
-              {m.frequency === 'weekly' && (' · ' + (dayLabels[m.dayOfWeek] || ''))}
-              {' · '}{m.durationMin < 60 ? m.durationMin + ' min' : (m.durationMin/60) + ' hod'} na firmu
+              {m.frequency === 'weekly' && (' Â· ' + (dayLabels[m.dayOfWeek] || ''))}
+              {' Â· '}{m.durationMin < 60 ? m.durationMin + ' min' : (m.durationMin/60) + ' hod'} na firmu
             </div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:6}}>
               {companyNames.map((name,i)=>(<span key={i} style={{fontSize:11,padding:'2px 8px',borderRadius:12,background:'var(--primary-bg)',color:'var(--primary)',fontWeight:600}}>{name}</span>))}
             </div>
             <div style={{fontSize:12,color:'var(--text-secondary)'}}>
-              Účastníci: {participantNames.join(', ')}
+              ÃÄastnÃ­ci: {participantNames.join(', ')}
             </div>
             <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:4}}>
-              {m.startDate && ('Od ' + formatDate(m.startDate))} {m.endDate ? (' do ' + formatDate(m.endDate)) : ' · Dokud nezruším'}
-              {authorName && (' · Vytvořil: ' + authorName)}
+              {m.startDate && ('Od ' + formatDate(m.startDate))} {m.endDate ? (' do ' + formatDate(m.endDate)) : ' Â· Dokud nezruÅ¡Ã­m'}
+              {authorName && (' Â· VytvoÅil: ' + authorName)}
             </div>
             {totalMin > 0 && (
               <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:2}}>
-                Celkem zalogováno: {formatHours(totalMin)}
+                Celkem zalogovÃ¡no: {formatHours(totalMin)}
               </div>
             )}
           </div>
@@ -3034,9 +3034,9 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
               <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
             </button>
             {m.isActive ? (
-              <button className="btn btn-sm" title="Pozastavit" style={{padding:'6px 8px',border:'1px solid var(--warning)',borderRadius:6,background:'var(--surface)',color:'var(--warning)',fontSize:12}} onClick={()=>deactivateMeeting(m.id)}>⏸</button>
+              <button className="btn btn-sm" title="Pozastavit" style={{padding:'6px 8px',border:'1px solid var(--warning)',borderRadius:6,background:'var(--surface)',color:'var(--warning)',fontSize:12}} onClick={()=>deactivateMeeting(m.id)}>â¸</button>
             ) : (
-              <button className="btn btn-sm" title="Obnovit" style={{padding:'6px 8px',border:'1px solid var(--success)',borderRadius:6,background:'var(--surface)',color:'var(--success)',fontSize:12}} onClick={()=>reactivateMeeting(m.id)}>▶</button>
+              <button className="btn btn-sm" title="Obnovit" style={{padding:'6px 8px',border:'1px solid var(--success)',borderRadius:6,background:'var(--surface)',color:'var(--success)',fontSize:12}} onClick={()=>reactivateMeeting(m.id)}>â¶</button>
             )}
             <button className="btn btn-sm" title="Smazat" style={{padding:'6px 8px',border:'1px solid var(--danger)',borderRadius:6,background:'var(--surface)',color:'var(--danger)',fontSize:12}} onClick={()=>deleteMeeting(m.id)}>
               <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.trash}</span>
@@ -3050,18 +3050,18 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <div className="section-title" style={{margin:0}}>Opakované tasky</div>
+        <div className="section-title" style={{margin:0}}>OpakovanÃ© tasky</div>
         <button className="btn btn-primary" style={{padding:'8px 16px',fontSize:13}} onClick={()=>setShowNew(!showNew)}>
-          {showNew ? 'Zrušit' : '+ Nový task'}
+          {showNew ? 'ZruÅ¡it' : '+ NovÃ½ task'}
         </button>
       </div>
 
       {showNew && (
         <div className="card" style={{marginBottom:16,padding:20}}>
-          <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>Nový pravidelný meeting</div>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>NovÃ½ pravidelnÃ½ meeting</div>
           <div style={{marginBottom:10}}>
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Popis</label>
-            <input className="input" value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Název opakovaného tasku" style={{width:'100%'}} />
+            <input className="input" value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="NÃ¡zev opakovanÃ©ho tasku" style={{width:'100%'}} />
           </div>
           <div style={{marginBottom:10}}>
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Firmy</label>
@@ -3074,7 +3074,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             </div>
           </div>
           <div style={{marginBottom:10}}>
-            <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Účastníci</label>
+            <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>ÃÄastnÃ­ci</label>
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {users.map(u=>(
                 <label key={u.id} style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:u.id===currentUser?.id?'not-allowed':'pointer'}}>
@@ -3091,11 +3091,11 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             <div>
               <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Frekvence</label>
               <select className="input" value={newFreq} onChange={e=>setNewFreq(e.target.value)}>
-                <option value="daily">Denně</option><option value="weekly">Týdně</option><option value="monthly">Měsíčně</option>
+                <option value="daily">DennÄ</option><option value="weekly">TÃ½dnÄ</option><option value="monthly">MÄsÃ­ÄnÄ</option>
               </select>
             </div>
             <div>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Délka (min)</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>DÃ©lka (min)</label>
               <select className="input" value={newDuration} onChange={e=>setNewDuration(parseInt(e.target.value))}>
                 <option value={15}>15 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>1 hod</option><option value={90}>1.5 hod</option><option value={120}>2 hod</option><option value={180}>3 hod</option><option value={240}>4 hod</option>
               </select>
@@ -3113,20 +3113,20 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
             <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:4}}>Platnost</label>
             <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:6}}>
               <input className="input" type="date" value={newStartDate} onChange={e=>setNewStartDate(e.target.value)} style={{flex:1}} />
-              <span style={{fontSize:12,color:'var(--text-secondary)'}}>—</span>
+              <span style={{fontSize:12,color:'var(--text-secondary)'}}>â</span>
               <input className="input" type="date" value={newIndefinite?'':newEndDate} onChange={e=>setNewEndDate(e.target.value)} disabled={newIndefinite} style={{flex:1,opacity:newIndefinite?0.4:1}} />
             </div>
             <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
-              <input type="checkbox" checked={newIndefinite} onChange={e=>setNewIndefinite(e.target.checked)} /> Dokud nezruším
+              <input type="checkbox" checked={newIndefinite} onChange={e=>setNewIndefinite(e.target.checked)} /> Dokud nezruÅ¡Ã­m
             </label>
           </div>
-          <button className="btn btn-primary" style={{width:'100%'}} onClick={createMeeting}>Vytvořit meeting</button>
+          <button className="btn btn-primary" style={{width:'100%'}} onClick={createMeeting}>VytvoÅit meeting</button>
         </div>
       )}
 
       {activeMeetings.length === 0 && !showNew && (
         <div className="card" style={{padding:32,textAlign:'center',color:'var(--text-secondary)'}}>
-          Zatím nemáte žádné opakované tasky. Klikněte na "+ Nový task" pro vytvoření.
+          ZatÃ­m nemÃ¡te Å¾Ã¡dnÃ© opakovanÃ© tasky. KliknÄte na "+ NovÃ½ task" pro vytvoÅenÃ­.
         </div>
       )}
 
@@ -3135,7 +3135,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       {inactiveMeetings.length > 0 && (
         <div style={{marginTop:24}}>
           <button className="btn btn-sm" style={{fontSize:12,color:'var(--text-secondary)',border:'1px solid var(--border)',borderRadius:8,padding:'6px 12px'}} onClick={()=>setShowInactive(!showInactive)}>
-            {showInactive ? 'Skrýt' : 'Zobrazit'} neaktivní ({inactiveMeetings.length})
+            {showInactive ? 'SkrÃ½t' : 'Zobrazit'} neaktivnÃ­ ({inactiveMeetings.length})
           </button>
           {showInactive && (
             <div style={{marginTop:12}}>
@@ -3159,10 +3159,11 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   const [completeDuration, setCompleteDuration] = useState({ hours: '0', mins: '30' });
   const [completeDesc, setCompleteDesc] = useState('');
   const [assignDialog, setAssignDialog] = useState(null);
+  const [expandedTask, setExpandedTask] = useState(null);
 
   const DIVISIONS = ['Finance', 'Legal', 'Operations/HR', 'Marketing'];
-  const PRIORITIES = { low: { label: 'Nízká', color: '#9ca3af' }, medium: { label: 'Střední', color: '#f59e0b' }, high: { label: 'Vysoká', color: '#ef4444' } };
-  const STATUSES = { zadano: { label: 'Zadáno', bg: '#dbeafe', color: '#1d4ed8' }, pracuje_se: { label: 'Pracuje se', bg: '#fef3c7', color: '#b45309' }, hotovo: { label: 'Hotovo', bg: '#d1fae5', color: '#047857' } };
+  const PRIORITIES = { low: { label: 'NÃ­zkÃ¡', color: '#9ca3af' }, medium: { label: 'StÅednÃ­', color: '#f59e0b' }, high: { label: 'VysokÃ¡', color: '#ef4444' } };
+  const STATUSES = { zadano: { label: 'ZadÃ¡no', bg: '#dbeafe', color: '#1d4ed8' }, pracuje_se: { label: 'Pracuje se', bg: '#fef3c7', color: '#b45309' }, hotovo: { label: 'Hotovo', bg: '#d1fae5', color: '#047857' } };
 
   // Filter tasks
   const filtered = clientTasks.filter(t => {
@@ -3191,7 +3192,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
 
   const getClientName = (clientId) => {
     const cp = clientProfiles.find(c => c.id === clientId);
-    return cp ? cp.name : 'Neznámý klient';
+    return cp ? cp.name : 'NeznÃ¡mÃ½ klient';
   };
 
   const getClientCompany = (clientId) => {
@@ -3224,7 +3225,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   const handleComplete = async () => {
     if (!completeDialog) return;
     const totalMins = (parseInt(completeDuration.hours) || 0) * 60 + (parseInt(completeDuration.mins) || 0);
-    if (totalMins < 15) { alert('Minimální délka je 15 minut'); return; }
+    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
 
     const sb = window.__supabase;
     if (!sb) return;
@@ -3242,7 +3243,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       is_manual: true,
     }]).select();
 
-    if (entryError) { alert('Chyba při vytváření záznamu: ' + entryError.message); return; }
+    if (entryError) { alert('Chyba pÅi vytvÃ¡ÅenÃ­ zÃ¡znamu: ' + entryError.message); return; }
 
     // Update task
     const { error: taskError } = await sb.from('client_tasks').update({
@@ -3280,7 +3281,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
 
   // Delete task
   const handleDelete = async (task) => {
-    if (!confirm('Opravdu chcete smazat úkol "' + task.title + '"?')) return;
+    if (!confirm('Opravdu chcete smazat Ãºkol "' + task.title + '"?')) return;
     const sb = window.__supabase;
     if (!sb) return;
     const { error } = await sb.from('client_tasks').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'admin', deleted_by: currentUser.id }).eq('id', task.id);
@@ -3297,7 +3298,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <div style={{fontSize:20,fontWeight:700}}>Klientské úkoly</div>
+        <div style={{fontSize:20,fontWeight:700}}>KlientskÃ© Ãºkoly</div>
         <div style={{display:'flex',gap:8}}>
           {Object.entries(taskCounts).filter(([k])=>k!=='all').map(([k,v]) => (
             <span key={k} style={{background:STATUSES[k].bg,color:STATUSES[k].color,padding:'3px 10px',borderRadius:20,fontSize:12,fontWeight:600}}>{STATUSES[k].label}: {v}</span>
@@ -3309,28 +3310,28 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       <div className="card" style={{padding:12,marginBottom:16}}>
         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
           <select className="input" style={{width:'auto',fontSize:12,padding:'6px 28px 6px 8px'}} value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}>
-            <option value="all">Všechny statusy</option>
-            <option value="zadano">Zadáno</option>
+            <option value="all">VÅ¡echny statusy</option>
+            <option value="zadano">ZadÃ¡no</option>
             <option value="pracuje_se">Pracuje se</option>
             <option value="hotovo">Hotovo</option>
           </select>
           <select className="input" style={{width:'auto',fontSize:12,padding:'6px 28px 6px 8px'}} value={filterCompany} onChange={e=>setFilterCompany(e.target.value)}>
-            <option value="all">Všechny firmy</option>
+            <option value="all">VÅ¡echny firmy</option>
             {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <select className="input" style={{width:'auto',fontSize:12,padding:'6px 28px 6px 8px'}} value={filterDivision} onChange={e=>setFilterDivision(e.target.value)}>
-            <option value="all">Všechny divize</option>
+            <option value="all">VÅ¡echny divize</option>
             {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <select className="input" style={{width:'auto',fontSize:12,padding:'6px 28px 6px 8px'}} value={filterPriority} onChange={e=>setFilterPriority(e.target.value)}>
-            <option value="all">Všechny priority</option>
-            <option value="high">Vysoká</option>
-            <option value="medium">Střední</option>
-            <option value="low">Nízká</option>
+            <option value="all">VÅ¡echny priority</option>
+            <option value="high">VysokÃ¡</option>
+            <option value="medium">StÅednÃ­</option>
+            <option value="low">NÃ­zkÃ¡</option>
           </select>
           {clientProfiles.length > 0 && (
             <select className="input" style={{width:'auto',fontSize:12,padding:'6px 28px 6px 8px'}} value={filterClient} onChange={e=>setFilterClient(e.target.value)}>
-              <option value="all">Všichni klienti</option>
+              <option value="all">VÅ¡ichni klienti</option>
               {clientProfiles.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           )}
@@ -3340,9 +3341,9 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       {/* Task list grouped by date */}
       {filtered.length === 0 ? (
         <div style={{textAlign:'center',padding:'40px 20px',color:'var(--text-secondary)'}}>
-          <div style={{fontSize:48,marginBottom:12}}>📋</div>
-          <div style={{fontSize:16,fontWeight:600,color:'var(--text)',marginBottom:4}}>Žádné úkoly</div>
-          <div>Klienti zatím nezadali žádné úkoly. Sdílejte jim odkaz: <strong>jokesaside.cz/tasks</strong></div>
+          <div style={{fontSize:48,marginBottom:12}}>ð</div>
+          <div style={{fontSize:16,fontWeight:600,color:'var(--text)',marginBottom:4}}>Å½Ã¡dnÃ© Ãºkoly</div>
+          <div>Klienti zatÃ­m nezadali Å¾Ã¡dnÃ© Ãºkoly. SdÃ­lejte jim odkaz: <strong>jokesaside.cz/tasks</strong></div>
         </div>
       ) : (
         sortedDates.map(date => (
@@ -3356,41 +3357,45 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
               const prio = PRIORITIES[task.priority] || PRIORITIES.medium;
               const status = STATUSES[task.status] || STATUSES.zadano;
               const clientName = getClientName(task.client_id);
+              const isExpanded = expandedTask === task.id;
 
               return (
-                <div key={task.id} className="card" style={{padding:12,marginBottom:8,borderLeft:`3px solid ${prio.color}`}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:14,fontWeight:600,marginBottom:2}}>{task.title}</div>
-                      {task.description && <div style={{fontSize:12,color:'var(--text-secondary)',marginBottom:4}}>{task.description}</div>}
-                    </div>
-                    <span style={{background:status.bg,color:status.color,padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600,whiteSpace:'nowrap',marginLeft:8}}>{status.label}</span>
+                <div key={task.id} className="card" style={{padding:'8px 12px',marginBottom:4,borderLeft:`3px solid ${prio.color}`,cursor:'pointer'}} onClick={() => setExpandedTask(isExpanded ? null : task.id)}>
+                  {/* Compact single line */}
+                  <div style={{display:'flex',alignItems:'center',gap:8,fontSize:13}}>
+                    <span style={{width:7,height:7,borderRadius:'50%',background:prio.color,flexShrink:0}} />
+                    <span style={{fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{task.title}</span>
+                    {comp && <span style={{background:comp.color+'15',color:comp.color,padding:'1px 7px',borderRadius:10,fontSize:11,fontWeight:600,flexShrink:0}}>{comp.name}</span>}
+                    <span style={{fontSize:11,color:'var(--text-secondary)',flexShrink:0}}>{task.division}</span>
+                    {assigned && <span style={{fontSize:11,color:'var(--primary)',fontWeight:600,flexShrink:0}}>→ {assigned.name}</span>}
+                    {task.deadline && <span style={{fontSize:11,color:'var(--text-secondary)',flexShrink:0}}>{new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</span>}
+                    {task.completed_duration_min > 0 && <span style={{fontSize:11,color:'var(--text-secondary)',flexShrink:0}}>{Math.floor(task.completed_duration_min/60)}h {task.completed_duration_min%60}m</span>}
+                    <span style={{background:status.bg,color:status.color,padding:'2px 8px',borderRadius:20,fontSize:10,fontWeight:600,whiteSpace:'nowrap',flexShrink:0}}>{status.label}</span>
                   </div>
 
-                  <div style={{display:'flex',flexWrap:'wrap',gap:8,alignItems:'center',fontSize:12,color:'var(--text-secondary)',marginBottom:8}}>
-                    <span style={{display:'flex',alignItems:'center'}}>
-                      <span style={{width:8,height:8,borderRadius:'50%',background:prio.color,marginRight:4}} />{prio.label}
-                    </span>
-                    {comp && <span style={{background:comp.color+'15',color:comp.color,padding:'2px 8px',borderRadius:12,fontWeight:600}}>{comp.name}</span>}
-                    <span>{task.division}</span>
-                    <span>👤 {clientName}</span>
-                    {task.deadline && <span>📅 {new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</span>}
-                    {assigned && <span style={{background:'var(--primary-light)',color:'var(--primary)',padding:'2px 8px',borderRadius:12,fontWeight:600}}>→ {assigned.name}</span>}
-                    {task.completed_duration_min && <span>⏱ {Math.floor(task.completed_duration_min/60)}h {task.completed_duration_min%60}m</span>}
-                  </div>
-
-                  {task.status !== 'hotovo' && (
-                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                      {task.status === 'zadano' && !task.assigned_user_id && (
-                        <button className="btn btn-outline btn-sm" onClick={() => setAssignDialog(task)}>Přiřadit</button>
+                  {/* Expanded detail */}
+                  {isExpanded && (
+                    <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
+                      {task.description && <div style={{fontSize:12,color:'var(--text-secondary)',marginBottom:8}}>{task.description}</div>}
+                      <div style={{fontSize:12,color:'var(--text-secondary)',marginBottom:8}}>
+                        Klient: <strong>{clientName}</strong>
+                        {task.deadline && <span style={{marginLeft:12}}>Deadline: <strong>{new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</strong></span>}
+                        {assigned && <span style={{marginLeft:12}}>Přiřazeno: <strong>{assigned.name}</strong></span>}
+                      </div>
+                      {task.status !== 'hotovo' && (
+                        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                          {task.status === 'zadano' && !task.assigned_user_id && (
+                            <button className="btn btn-outline btn-sm" onClick={() => setAssignDialog(task)}>Přiřadit</button>
+                          )}
+                          {task.status === 'zadano' && (
+                            <button className="btn btn-sm" style={{background:'#fef3c7',color:'#b45309',border:'1px solid #fde68a',borderRadius:8}} onClick={() => changeStatus(task, 'pracuje_se')}>Pracuje se</button>
+                          )}
+                          {task.status === 'pracuje_se' && (
+                            <button className="btn btn-sm" style={{background:'#d1fae5',color:'#047857',border:'1px solid #a7f3d0',borderRadius:8}} onClick={() => changeStatus(task, 'hotovo')}>Hotovo</button>
+                          )}
+                          <button className="btn btn-sm" style={{color:'var(--danger)',border:'1px solid var(--danger)',borderRadius:8,background:'var(--surface)'}} onClick={() => handleDelete(task)}>Smazat</button>
+                        </div>
                       )}
-                      {task.status === 'zadano' && (
-                        <button className="btn btn-sm" style={{background:'#fef3c7',color:'#b45309',border:'1px solid #fde68a',borderRadius:8}} onClick={() => changeStatus(task, 'pracuje_se')}>Pracuje se</button>
-                      )}
-                      {task.status === 'pracuje_se' && (
-                        <button className="btn btn-sm" style={{background:'#d1fae5',color:'#047857',border:'1px solid #a7f3d0',borderRadius:8}} onClick={() => changeStatus(task, 'hotovo')}>Hotovo</button>
-                      )}
-                      <button className="btn btn-sm" style={{color:'var(--danger)',border:'1px solid var(--danger)',borderRadius:8,background:'var(--surface)'}} onClick={() => handleDelete(task)}>Smazat</button>
                     </div>
                   )}
                 </div>
@@ -3404,16 +3409,16 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       {completeDialog && (
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.4)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
           <div className="card" style={{maxWidth:420,width:'100%',padding:24}}>
-            <div style={{fontSize:18,fontWeight:700,marginBottom:4}}>Dokončit úkol</div>
-            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:16}}>Zadejte čas strávený na úkolu — automaticky se vytvoří záznam v trackeru.</div>
+            <div style={{fontSize:18,fontWeight:700,marginBottom:4}}>DokonÄit Ãºkol</div>
+            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:16}}>Zadejte Äas strÃ¡venÃ½ na Ãºkolu â automaticky se vytvoÅÃ­ zÃ¡znam v trackeru.</div>
 
             <div style={{marginBottom:12}}>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis záznamu</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Popis zÃ¡znamu</label>
               <input className="input" value={completeDesc} onChange={e => setCompleteDesc(e.target.value)} />
             </div>
 
             <div style={{marginBottom:16}}>
-              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Strávený čas</label>
+              <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>StrÃ¡venÃ½ Äas</label>
               <div style={{display:'flex',gap:8,alignItems:'center'}}>
                 <input className="input" type="number" min="0" value={completeDuration.hours} onChange={e => setCompleteDuration({...completeDuration, hours: e.target.value})} style={{width:60}} />
                 <span style={{fontSize:12,color:'var(--text-secondary)'}}>h</span>
@@ -3423,8 +3428,8 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
             </div>
 
             <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-outline" style={{flex:1}} onClick={() => setCompleteDialog(null)}>Zrušit</button>
-              <button className="btn btn-primary" style={{flex:2}} onClick={handleComplete}>Dokončit a vytvořit záznam</button>
+              <button className="btn btn-outline" style={{flex:1}} onClick={() => setCompleteDialog(null)}>ZruÅ¡it</button>
+              <button className="btn btn-primary" style={{flex:2}} onClick={handleComplete}>DokonÄit a vytvoÅit zÃ¡znam</button>
             </div>
           </div>
         </div>
@@ -3434,8 +3439,8 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       {assignDialog && (
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.4)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
           <div className="card" style={{maxWidth:360,width:'100%',padding:24}}>
-            <div style={{fontSize:18,fontWeight:700,marginBottom:4}}>Přiřadit zodpovědnou osobu</div>
-            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:16}}>Úkol: {assignDialog.title}</div>
+            <div style={{fontSize:18,fontWeight:700,marginBottom:4}}>PÅiÅadit zodpovÄdnou osobu</div>
+            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:16}}>Ãkol: {assignDialog.title}</div>
 
             <div style={{display:'flex',flexDirection:'column',gap:6}}>
               {assignableUsers.map(u => (
@@ -3448,7 +3453,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
               ))}
             </div>
 
-            <button className="btn btn-outline" style={{width:'100%',marginTop:12}} onClick={() => setAssignDialog(null)}>Zrušit</button>
+            <button className="btn btn-outline" style={{width:'100%',marginTop:12}} onClick={() => setAssignDialog(null)}>ZruÅ¡it</button>
           </div>
         </div>
       )}
@@ -3488,13 +3493,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     const sb = window.__supabase;
     if (!sb) return;
     if (!company.name || !company.ico) {
-      alert('Vyplňte prosím: ' + (!company.name ? 'Název' : '') + (!company.name && !company.ico ? ', ' : '') + (!company.ico ? 'IČ' : ''));
+      alert('VyplÅte prosÃ­m: ' + (!company.name ? 'NÃ¡zev' : '') + (!company.name && !company.ico ? ', ' : '') + (!company.ico ? 'IÄ' : ''));
       return;
     }
-    // Check for duplicate IČ
+    // Check for duplicate IÄ
     const duplicate = companies.find(c => c.ico === company.ico && c.id !== company.id);
     if (duplicate) {
-      alert('Firma s IČ ' + company.ico + ' již existuje: ' + duplicate.name);
+      alert('Firma s IÄ ' + company.ico + ' jiÅ¾ existuje: ' + duplicate.name);
       return;
     }
     const compData = {
@@ -3561,26 +3566,26 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       <div className="section-title">Administrace</div>
 
       <div className="tabs">
-        <button className={`tab ${tab==='profile'?'active':''}`} onClick={()=>setTab('profile')}>Můj profil</button>
-        {isAdmin && <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Lidé</button>}
+        <button className={`tab ${tab==='profile'?'active':''}`} onClick={()=>setTab('profile')}>MÅ¯j profil</button>
+        {isAdmin && <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>LidÃ©</button>}
         <button className={`tab ${tab==='companies'?'active':''}`} onClick={()=>setTab('companies')}>Firmy</button>
-        {isAdmin && <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>Slevová pásma</button>}
+        {isAdmin && <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>SlevovÃ¡ pÃ¡sma</button>}
       </div>
 
       {tab === 'profile' && currentUser && (
         <div>
           <div className="card" style={{marginBottom:16}}>
-            <h3 style={{marginBottom:12,fontSize:16}}>Můj profil</h3>
+            <h3 style={{marginBottom:12,fontSize:16}}>MÅ¯j profil</h3>
             <div className="form-group">
-              <label className="form-label">Jméno</label>
+              <label className="form-label">JmÃ©no</label>
               <input className="input" value={currentUser.name||''} onChange={e=>setCurrentUser && setUsers(prev => { const updated = {...currentUser, name:e.target.value}; return prev.map(u=>u.id===currentUser.id?updated:u); })} disabled />
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
               <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Email</span><div style={{fontWeight:500}}>{currentUser.email}</div></div>
-              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Pozice</span><div style={{fontWeight:500}}>{currentUser.position || '—'}</div></div>
-              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Divize</span><div style={{fontWeight:500}}>{currentUser.division || '—'}</div></div>
-              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Hodinová sazba</span><div style={{fontWeight:500}}>{currentUser.hourly_rate} Kč</div></div>
-              {currentUser.manager_id && <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Manažer</span><div style={{fontWeight:500}}>{users.find(u=>u.id===currentUser.manager_id)?.name || '—'}</div></div>}
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Pozice</span><div style={{fontWeight:500}}>{currentUser.position || 'â'}</div></div>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>Divize</span><div style={{fontWeight:500}}>{currentUser.division || 'â'}</div></div>
+              <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>HodinovÃ¡ sazba</span><div style={{fontWeight:500}}>{currentUser.hourly_rate} KÄ</div></div>
+              {currentUser.manager_id && <div><span style={{fontSize:12,color:'var(--text-secondary)'}}>ManaÅ¾er</span><div style={{fontWeight:500}}>{users.find(u=>u.id===currentUser.manager_id)?.name || 'â'}</div></div>}
             </div>
             <button className="btn btn-outline btn-sm" style={{marginTop:12}} onClick={() => setEditUser({...currentUser})}>
               <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span> Upravit profil
@@ -3593,20 +3598,20 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditUser({id:'',name:'',email:'',position:'',division:'',hourly_rate:0,is_admin:false})}>
-              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat osobu
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> PÅidat osobu
             </button>
           </div>
           <div className="scroll-x">
             <table className="admin-table">
-              <thead><tr><th>Jméno</th><th>Pozice</th><th>Divize</th><th>Sazba</th><th>Admin</th><th></th></tr></thead>
+              <thead><tr><th>JmÃ©no</th><th>Pozice</th><th>Divize</th><th>Sazba</th><th>Admin</th><th></th></tr></thead>
               <tbody>
                 {users.map(u => (
                   <tr key={u.id}>
                     <td><div style={{fontWeight:500}}>{u.name}</div><div style={{fontSize:12,color:'var(--text-secondary)'}}>{u.email}</div></td>
                     <td>{u.position}</td>
                     <td>{u.division}</td>
-                    <td>{(u.hourly_rate||0).toLocaleString('cs-CZ')} Kč/h</td>
-                    <td>{u.is_admin ? <span className="badge badge-success">Admin</span> : '—'}</td>
+                    <td>{(u.hourly_rate||0).toLocaleString('cs-CZ')} KÄ/h</td>
+                    <td>{u.is_admin ? <span className="badge badge-success">Admin</span> : 'â'}</td>
                     <td>
                       <button className="btn-icon btn-outline btn-sm" onClick={() => setEditUser({...u})} title="Upravit">
                         <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.edit}</span>
@@ -3624,11 +3629,11 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditCompany({id:'',name:'',legal_name:'',address:'',ico:'',dic:'',is_vat_payer:false,color:'#6366f1',is_active:true})}>
-              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat firmu
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> PÅidat firmu
             </button>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
-            <label className="form-label" style={{margin:0,whiteSpace:'nowrap'}}>Měsíc:</label>
+            <label className="form-label" style={{margin:0,whiteSpace:'nowrap'}}>MÄsÃ­c:</label>
             <input className="input" type="month" value={retainerMonth} onChange={e=>setRetainerMonth(e.target.value)} style={{flex:1,maxWidth:200}} />
             <span style={{fontSize:13,color:'var(--text-secondary)'}}>{getMonthLabel(retainerMonth)}</span>
           </div>
@@ -3663,17 +3668,17 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                   <div>
                     <div style={{fontWeight:600,fontSize:15}}>{c.name}</div>
                     <div style={{fontSize:12,color:'var(--text-secondary)'}}>
-                      {c.ico ? 'IČ: '+c.ico : ''}{c.dic ? ' · DIČ: '+c.dic : ''}{c.is_vat_payer ? ' · Plátce DPH' : ''}
+                      {c.ico ? 'IÄ: '+c.ico : ''}{c.dic ? ' Â· DIÄ: '+c.dic : ''}{c.is_vat_payer ? ' Â· PlÃ¡tce DPH' : ''}
                     </div>
-                    {scheme && <div style={{fontSize:12,color:'var(--primary)',marginTop:2}}>Slevové schéma: {scheme.name}</div>}
-                    {isInherited && <div style={{fontSize:11,color:'var(--warning)',marginTop:2}}>Zděděno z dřívějšího nastavení</div>}
+                    {scheme && <div style={{fontSize:12,color:'var(--primary)',marginTop:2}}>SlevovÃ© schÃ©ma: {scheme.name}</div>}
+                    {isInherited && <div style={{fontSize:11,color:'var(--warning)',marginTop:2}}>ZdÄdÄno z dÅÃ­vÄjÅ¡Ã­ho nastavenÃ­</div>}
                   </div>
                   <div style={{display:'flex',gap:6}}>
                     <button className="btn btn-outline btn-sm" onClick={() => setEditCompany({...c})}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.settings}</span>
                     </button>
                     {isAdmin && currentUser?.email === 'lukas.janousek@gmail.com' && <button className="btn btn-outline btn-sm" style={{color:'var(--danger)',borderColor:'var(--danger)'}} onClick={async () => {
-                      if (!confirm('Opravdu chcete smazat firmu "' + c.name + '"? Tato akce je nevratná.')) return;
+                      if (!confirm('Opravdu chcete smazat firmu "' + c.name + '"? Tato akce je nevratnÃ¡.')) return;
                       try {
                         const sb = window.__supabase;
                         if (sb) {
@@ -3681,7 +3686,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                           if (error) throw error;
                         }
                         setCompanies(companies.filter(co => co.id !== c.id));
-                      } catch(err) { alert('Chyba při mazání: ' + err.message); }
+                      } catch(err) { alert('Chyba pÅi mazÃ¡nÃ­: ' + err.message); }
                     }}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.trash}</span>
                     </button>}
@@ -3720,19 +3725,19 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {editRetainer && (
         <div className="modal-overlay" onClick={() => setEditRetainer(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h2>Retainer — {editRetainer.company_name}</h2>
-            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>Měsíc: {getMonthLabel(editRetainer.month)}</div>
+            <h2>Retainer â {editRetainer.company_name}</h2>
+            <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>MÄsÃ­c: {getMonthLabel(editRetainer.month)}</div>
             <div className="form-group">
-              <label className="form-label">Platí od (měsíc)</label>
+              <label className="form-label">PlatÃ­ od (mÄsÃ­c)</label>
               <input className="input" type="month" value={editRetainer.valid_from || ''} onChange={e=>setEditRetainer({...editRetainer, valid_from:e.target.value})} />
-              <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:4}}>Retainer se automaticky přenáší do dalších měsíců od tohoto data</div>
+              <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:4}}>Retainer se automaticky pÅenÃ¡Å¡Ã­ do dalÅ¡Ã­ch mÄsÃ­cÅ¯ od tohoto data</div>
             </div>
             <div className="form-group">
-              <label className="form-label">Měsíční platba (Kč)</label>
+              <label className="form-label">MÄsÃ­ÄnÃ­ platba (KÄ)</label>
               <input className="input" type="number" value={editRetainer.payment_czk} onChange={e=>setEditRetainer({...editRetainer, payment_czk:parseInt(e.target.value)||0})} />
             </div>
             <div className="form-group">
-              <label className="form-label">Rollover z předchozího měsíce (Kč)</label>
+              <label className="form-label">Rollover z pÅedchozÃ­ho mÄsÃ­ce (KÄ)</label>
               <input className="input" type="number" value={editRetainer.rollover_czk} onChange={e=>setEditRetainer({...editRetainer, rollover_czk:parseFloat(e.target.value)||0})} />
             </div>
             {(() => {
@@ -3741,20 +3746,20 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               const credit = calculateCredit(editRetainer.payment_czk, tiers);
               return (
                 <div style={{padding:12,background:'var(--bg)',borderRadius:8,marginBottom:16,fontSize:13}}>
-                  {scheme && <div style={{marginBottom:6}}>Schéma: <strong>{scheme.name}</strong> {scheme.no_discount && '(bez slevy)'}</div>}
+                  {scheme && <div style={{marginBottom:6}}>SchÃ©ma: <strong>{scheme.name}</strong> {scheme.no_discount && '(bez slevy)'}</div>}
                   <div>Kredit z platby: <strong>{formatCzk(credit)}</strong></div>
                   <div>+ Rollover: <strong>{formatCzk(editRetainer.rollover_czk)}</strong></div>
                   <div style={{borderTop:'1px solid var(--border)',marginTop:6,paddingTop:6,fontWeight:700}}>
-                    Celkový budget: {formatCzk(credit + editRetainer.rollover_czk)}
+                    CelkovÃ½ budget: {formatCzk(credit + editRetainer.rollover_czk)}
                   </div>
                 </div>
               );
             })()}
             <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-              <button className="btn btn-outline" onClick={()=>setEditRetainer(null)}>Zrušit</button>
+              <button className="btn btn-outline" onClick={()=>setEditRetainer(null)}>ZruÅ¡it</button>
               <button className="btn btn-primary" onClick={async () => {
                 const sb = window.__supabase;
-                if (!sb) { alert('Supabase není připojeno'); return; }
+                if (!sb) { alert('Supabase nenÃ­ pÅipojeno'); return; }
                 try {
                   const retData = {
                     company_id: editRetainer.company_id,
@@ -3765,16 +3770,16 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                   };
                   if (editRetainer.existing_id) {
                     const { error } = await sb.from('retainers').update(retData).eq('id', editRetainer.existing_id);
-                    if (error) { console.error('Retainer update error:', error); alert('Chyba při ukládání: ' + error.message); return; }
+                    if (error) { console.error('Retainer update error:', error); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + error.message); return; }
                     setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? {...r, ...retData, id: editRetainer.existing_id} : r));
                   } else {
                     const { data: inserted, error } = await sb.from('retainers').insert([retData]).select();
-                    if (error) { console.error('Retainer insert error:', error); alert('Chyba při ukládání: ' + error.message); return; }
+                    if (error) { console.error('Retainer insert error:', error); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + error.message); return; }
                     if (inserted && inserted[0]) setRetainers(prev => [...prev, inserted[0]]);
                   }
                   setEditRetainer(null);
                 } catch(err) { console.error('Retainer save error:', err); alert('Chyba: ' + err.message); }
-              }}>Uložit</button>
+              }}>UloÅ¾it</button>
             </div>
           </div>
         </div>
@@ -3784,7 +3789,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
             <button className="btn btn-primary btn-sm" onClick={() => setEditingScheme({name:'',no_discount:false,companyIds:[],tiers:[{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
-              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Nové schéma
+              <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> NovÃ© schÃ©ma
             </button>
           </div>
           {discountSchemes.map(scheme => (
@@ -3793,7 +3798,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                 <div>
                   <div style={{fontWeight:600,fontSize:15}}>{scheme.name}</div>
                   <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>
-                    {scheme.no_discount ? 'Bez slevy (100% kredit)' : (scheme.tiers?.length || 0) + ' pásem'}
+                    {scheme.no_discount ? 'Bez slevy (100% kredit)' : (scheme.tiers?.length || 0) + ' pÃ¡sem'}
                   </div>
                 </div>
                 <div style={{display:'flex',gap:6}}>
@@ -3808,10 +3813,10 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                 </div>
               </div>
               <div style={{marginBottom:10}}>
-                <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',marginBottom:6}}>Přiřazené firmy:</div>
+                <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',marginBottom:6}}>PÅiÅazenÃ© firmy:</div>
                 <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                   {(!scheme.companyIds || scheme.companyIds.length === 0) ? (
-                    <span style={{fontSize:13,color:'var(--text-secondary)'}}>Žádné</span>
+                    <span style={{fontSize:13,color:'var(--text-secondary)'}}>Å½Ã¡dnÃ©</span>
                   ) : (
                     scheme.companyIds.map(cid => {
                       const comp = companies.find(c => c.id === cid);
@@ -3823,7 +3828,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               {!scheme.no_discount && scheme.tiers && scheme.tiers.length > 0 && (
                 <div className="scroll-x">
                   <table className="admin-table" style={{marginTop:8}}>
-                    <thead><tr><th>Pásmo</th><th>Od (Kč)</th><th>Do (Kč)</th><th>Sleva</th></tr></thead>
+                    <thead><tr><th>PÃ¡smo</th><th>Od (KÄ)</th><th>Do (KÄ)</th><th>Sleva</th></tr></thead>
                     <tbody>
                       {scheme.tiers.map((t, i) => (
                         <tr key={i}>
@@ -3840,7 +3845,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             </div>
           ))}
           {discountSchemes.length === 0 && (
-            <div style={{textAlign:'center',color:'var(--text-secondary)',padding:20}}>Žádná slevová schémata. Klikněte na "Nové schéma" pro vytvoření.</div>
+            <div style={{textAlign:'center',color:'var(--text-secondary)',padding:20}}>Å½Ã¡dnÃ¡ slevovÃ¡ schÃ©mata. KliknÄte na "NovÃ© schÃ©ma" pro vytvoÅenÃ­.</div>
           )}
         </div>
       )}
@@ -3849,9 +3854,9 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {editUser && (
         <div className="modal-overlay" onClick={() => setEditUser(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h2>{editUser.id ? 'Upravit osobu' : 'Přidat osobu'}</h2>
+            <h2>{editUser.id ? 'Upravit osobu' : 'PÅidat osobu'}</h2>
             <div className="form-group">
-              <label className="form-label">Jméno</label>
+              <label className="form-label">JmÃ©no</label>
               <input className="input" value={editUser.name} onChange={e=>setEditUser({...editUser, name:e.target.value})} />
             </div>
             <div className="form-group">
@@ -3873,13 +3878,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Hodinová sazba (Kč)</label>
+              <label className="form-label">HodinovÃ¡ sazba (KÄ)</label>
               <input className="input" type="number" value={editUser.hourly_rate} onChange={e=>setEditUser({...editUser, hourly_rate:parseInt(e.target.value)||0})} />
             </div>
             <div className="form-group">
-              <label className="form-label">Manažer (schvaluje report)</label>
+              <label className="form-label">ManaÅ¾er (schvaluje report)</label>
               <select className="input select" value={editUser.manager_id||''} onChange={e=>setEditUser({...editUser, manager_id:e.target.value||null})}>
-                <option value="">Žádný</option>
+                <option value="">Å½Ã¡dnÃ½</option>
                 {users.filter(u => u.id !== editUser.id).map(u => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
@@ -3888,12 +3893,12 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             {isAdmin && <div className="form-group">
               <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
                 <input type="checkbox" checked={editUser.is_admin} onChange={e=>setEditUser({...editUser, is_admin:e.target.checked})} />
-                <span className="form-label" style={{margin:0}}>Administrátor</span>
+                <span className="form-label" style={{margin:0}}>AdministrÃ¡tor</span>
               </label>
             </div>}
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
-              <button className="btn btn-outline" onClick={()=>setEditUser(null)}>Zrušit</button>
-              <button className="btn btn-primary" onClick={()=>handleSaveUser(editUser)}>Uložit</button>
+              <button className="btn btn-outline" onClick={()=>setEditUser(null)}>ZruÅ¡it</button>
+              <button className="btn btn-primary" onClick={()=>handleSaveUser(editUser)}>UloÅ¾it</button>
             </div>
           </div>
         </div>
@@ -3903,13 +3908,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {editCompany && (
         <div className="modal-overlay" onClick={() => setEditCompany(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h2>{editCompany.id ? 'Upravit firmu — ' + editCompany.name : 'Nová firma'}</h2>
+            <h2>{editCompany.id ? 'Upravit firmu â ' + editCompany.name : 'NovÃ¡ firma'}</h2>
             <div className="form-group">
-              <label className="form-label">Název</label>
+              <label className="form-label">NÃ¡zev</label>
               <input className="input" value={editCompany.name||''} onChange={e=>setEditCompany({...editCompany, name:e.target.value})} />
             </div>
             <div className="form-group">
-              <label className="form-label">Obchodní jméno</label>
+              <label className="form-label">ObchodnÃ­ jmÃ©no</label>
               <input className="input" value={editCompany.legal_name||''} onChange={e=>setEditCompany({...editCompany, legal_name:e.target.value})} />
             </div>
             <div className="form-group">
@@ -3921,22 +3926,22 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               <input className="input" type="color" value={editCompany.color||'#6366f1'} onChange={e=>setEditCompany({...editCompany, color:e.target.value})} style={{height:40,padding:4}} />
             </div>
             <div className="form-group">
-              <label className="form-label">IČ <span style={{color:'var(--danger)'}}>*</span></label>
-              <input className="input" value={editCompany.ico||''} onChange={e=>setEditCompany({...editCompany, ico:e.target.value})} placeholder="Povinné" />
+              <label className="form-label">IÄ <span style={{color:'var(--danger)'}}>*</span></label>
+              <input className="input" value={editCompany.ico||''} onChange={e=>setEditCompany({...editCompany, ico:e.target.value})} placeholder="PovinnÃ©" />
             </div>
             <div className="form-group">
-              <label className="form-label">DIČ</label>
+              <label className="form-label">DIÄ</label>
               <input className="input" value={editCompany.dic||''} onChange={e=>setEditCompany({...editCompany, dic:e.target.value})} />
             </div>
             <div className="form-group">
               <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
                 <input type="checkbox" checked={editCompany.is_vat_payer||false} onChange={e=>setEditCompany({...editCompany, is_vat_payer:e.target.checked})} />
-                <span className="form-label" style={{margin:0}}>Plátce DPH</span>
+                <span className="form-label" style={{margin:0}}>PlÃ¡tce DPH</span>
               </label>
             </div>
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
-              <button className="btn btn-outline" onClick={()=>setEditCompany(null)}>Zrušit</button>
-              <button className="btn btn-primary" onClick={()=>handleSaveCompany(editCompany)}>Uložit</button>
+              <button className="btn btn-outline" onClick={()=>setEditCompany(null)}>ZruÅ¡it</button>
+              <button className="btn btn-primary" onClick={()=>handleSaveCompany(editCompany)}>UloÅ¾it</button>
             </div>
           </div>
         </div>
@@ -3946,9 +3951,9 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {editingScheme && (
         <div className="modal-overlay" onClick={() => setEditingScheme(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()} style={{maxHeight:'85dvh',overflowY:'auto'}}>
-            <h2>{editingScheme.id ? 'Upravit schéma' : 'Nové schéma slevy'}</h2>
+            <h2>{editingScheme.id ? 'Upravit schÃ©ma' : 'NovÃ© schÃ©ma slevy'}</h2>
             <div className="form-group">
-              <label className="form-label">Název schématu</label>
+              <label className="form-label">NÃ¡zev schÃ©matu</label>
               <input className="input" value={editingScheme.name} onChange={e=>setEditingScheme({...editingScheme,name:e.target.value})} />
             </div>
             <div className="form-group">
@@ -3959,15 +3964,15 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
             </div>
             {!editingScheme.no_discount && (
               <div>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>Pásma slevy:</div>
+                <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>PÃ¡sma slevy:</div>
                 {(editingScheme.tiers||[]).map((tier,i) => (
                   <div key={i} style={{display:'flex',gap:6,alignItems:'center',marginBottom:10,padding:10,background:'var(--bg)',borderRadius:8}}>
                     <div style={{flex:1}}>
-                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Od (Kč)</label>
+                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Od (KÄ)</label>
                       <input className="input" type="number" value={tier.from_czk} onChange={e=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.map((t,j)=>j===i?{...t,from_czk:parseInt(e.target.value)||0}:t)})} />
                     </div>
                     <div style={{flex:1}}>
-                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Do (Kč)</label>
+                      <label style={{fontSize:11,color:'var(--text-secondary)'}}>Do (KÄ)</label>
                       <input className="input" type="number" value={tier.to_czk} onChange={e=>setEditingScheme({...editingScheme,tiers:editingScheme.tiers.map((t,j)=>j===i?{...t,to_czk:parseInt(e.target.value)||0}:t)})} />
                     </div>
                     <div style={{flex:0.8}}>
@@ -3980,11 +3985,11 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                   </div>
                 ))}
                 <button className="btn btn-outline btn-sm" style={{width:'100%',marginBottom:12}} onClick={()=>setEditingScheme({...editingScheme,tiers:[...(editingScheme.tiers||[]),{from_czk:0,to_czk:15000,discount_pct:0.20}]})}>
-                  <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> Přidat pásmo
+                  <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> PÅidat pÃ¡smo
                 </button>
               </div>
             )}
-            <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>Přiřadit firmám:</div>
+            <div style={{fontSize:13,fontWeight:600,marginBottom:10,marginTop:10}}>PÅiÅadit firmÃ¡m:</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
               {companies.map(c => {
                 const isSelected = (editingScheme.companyIds||[]).includes(c.id);
@@ -3996,8 +4001,8 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               })}
             </div>
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
-              <button className="btn btn-outline" onClick={()=>setEditingScheme(null)}>Zrušit</button>
-              <button className="btn btn-primary" onClick={()=>handleSaveScheme(editingScheme)}>Uložit</button>
+              <button className="btn btn-outline" onClick={()=>setEditingScheme(null)}>ZruÅ¡it</button>
+              <button className="btn btn-primary" onClick={()=>handleSaveScheme(editingScheme)}>UloÅ¾it</button>
             </div>
           </div>
         </div>
@@ -4014,9 +4019,9 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return React.createElement('div', {style: {padding: 40, textAlign: 'center'}},
-        React.createElement('h2', null, 'Došlo k chybě'),
+        React.createElement('h2', null, 'DoÅ¡lo k chybÄ'),
         React.createElement('pre', {style: {textAlign: 'left', background: '#f5f5f5', padding: 16, borderRadius: 8, overflow: 'auto', maxHeight: 300, fontSize: 12}}, String(this.state.error)),
-        React.createElement('button', {onClick: () => { this.setState({hasError: false}); window.location.reload(); }, style: {marginTop: 16, padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer'}}, 'Obnovit stránku')
+        React.createElement('button', {onClick: () => { this.setState({hasError: false}); window.location.reload(); }, style: {marginTop: 16, padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer'}}, 'Obnovit strÃ¡nku')
       );
     }
     return this.props.children;
