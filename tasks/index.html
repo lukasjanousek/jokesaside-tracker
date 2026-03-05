@@ -124,7 +124,7 @@ function App() {
   const [clientProfile, setClientProfile] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [page, setPage] = useState('tasks'); // tasks | new | profile
+  const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [authMode, setAuthMode] = useState('login'); // login | signup
   const [authError, setAuthError] = useState('');
@@ -253,71 +253,71 @@ function App() {
       </div>
 
       <div className="content">
-        <div className="nav-tabs">
-          <button className={`nav-tab ${page === 'tasks' ? 'active' : ''}`} onClick={() => setPage('tasks')}>Moje úkoly</button>
-          <button className={`nav-tab ${page === 'new' ? 'active' : ''}`} onClick={() => { setEditingTask(null); setPage('new'); }}>+ Nový úkol</button>
+        {/* Inline task input at top */}
+        <div className="card" style={{padding:formOpen ? 20 : 0,marginBottom:20}}>
+          {!formOpen ? (
+            <div style={{padding:'14px 18px',cursor:'pointer',display:'flex',alignItems:'center',gap:10}} onClick={() => { setEditingTask(null); setFormOpen(true); }}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:'var(--primary)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,fontWeight:700,flexShrink:0}}>+</div>
+              <div>
+                <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Nový úkol</div>
+                <div style={{fontSize:12,color:'var(--text-secondary)'}}>Co potřebujete?</div>
+              </div>
+            </div>
+          ) : (
+            <TaskForm
+              companies={companies}
+              clientProfile={clientProfile}
+              editingTask={editingTask}
+              onSave={async (taskData) => {
+                if (editingTask) {
+                  const { data, error } = await supabase.from('client_tasks')
+                    .update({ ...taskData, updated_at: new Date().toISOString() })
+                    .eq('id', editingTask.id).select();
+                  if (error) { alert('Chyba: ' + error.message); return; }
+                  await supabase.from('client_task_logs').insert([{
+                    task_id: editingTask.id, user_type: 'client', user_id: clientProfile.id,
+                    action: 'edited', old_values: editingTask, new_values: taskData
+                  }]);
+                  if (data) setTasks(tasks.map(t => t.id === editingTask.id ? data[0] : t));
+                } else {
+                  const { data, error } = await supabase.from('client_tasks')
+                    .insert([{ ...taskData, client_id: clientProfile.id }]).select();
+                  if (error) { alert('Chyba: ' + error.message); return; }
+                  if (data) {
+                    await supabase.from('client_task_logs').insert([{
+                      task_id: data[0].id, user_type: 'client', user_id: clientProfile.id,
+                      action: 'created', new_values: data[0]
+                    }]);
+                    setTasks([data[0], ...tasks]);
+                  }
+                }
+                setEditingTask(null);
+                setFormOpen(false);
+              }}
+              onCancel={() => { setEditingTask(null); setFormOpen(false); }}
+            />
+          )}
         </div>
 
-        {page === 'tasks' && (
-          <TasksList
-            tasks={tasks}
-            companies={companies}
-            onEdit={(task) => { setEditingTask(task); setPage('new'); }}
-            onDelete={async (taskId) => {
-              if (!confirm('Opravdu chcete smazat tento úkol?')) return;
-              const { error } = await supabase.from('client_tasks').update({
-                is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'client', deleted_by: clientProfile.id
-              }).eq('id', taskId);
-              if (!error) {
-                // Log
-                await supabase.from('client_task_logs').insert([{
-                  task_id: taskId, user_type: 'client', user_id: clientProfile.id,
-                  action: 'deleted', old_values: tasks.find(t => t.id === taskId), new_values: { is_deleted: true }
-                }]);
-                setTasks(tasks.filter(t => t.id !== taskId));
-              }
-            }}
-          />
-        )}
-
-        {page === 'new' && (
-          <TaskForm
-            companies={companies}
-            clientProfile={clientProfile}
-            editingTask={editingTask}
-            onSave={async (taskData) => {
-              if (editingTask) {
-                // Update
-                const { data, error } = await supabase.from('client_tasks')
-                  .update({ ...taskData, updated_at: new Date().toISOString() })
-                  .eq('id', editingTask.id).select();
-                if (error) { alert('Chyba: ' + error.message); return; }
-                // Log
-                await supabase.from('client_task_logs').insert([{
-                  task_id: editingTask.id, user_type: 'client', user_id: clientProfile.id,
-                  action: 'edited', old_values: editingTask, new_values: taskData
-                }]);
-                if (data) setTasks(tasks.map(t => t.id === editingTask.id ? data[0] : t));
-              } else {
-                // Create
-                const { data, error } = await supabase.from('client_tasks')
-                  .insert([{ ...taskData, client_id: clientProfile.id }]).select();
-                if (error) { alert('Chyba: ' + error.message); return; }
-                // Log
-                if (data) {
-                  await supabase.from('client_task_logs').insert([{
-                    task_id: data[0].id, user_type: 'client', user_id: clientProfile.id,
-                    action: 'created', new_values: data[0]
-                  }]);
-                  setTasks([data[0], ...tasks]);
-                }
-              }
-              setEditingTask(null);
-              setPage('tasks');
-            }}
-            onCancel={() => { setEditingTask(null); setPage('tasks'); }}
-          />
-        )}
+        {/* Tasks list */}
+        <TasksList
+          tasks={tasks}
+          companies={companies}
+          onEdit={(task) => { setEditingTask(task); setFormOpen(true); window.scrollTo({top:0,behavior:'smooth'}); }}
+          onDelete={async (taskId) => {
+            if (!confirm('Opravdu chcete smazat tento úkol?')) return;
+            const { error } = await supabase.from('client_tasks').update({
+              is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'client', deleted_by: clientProfile.id
+            }).eq('id', taskId);
+            if (!error) {
+              await supabase.from('client_task_logs').insert([{
+                task_id: taskId, user_type: 'client', user_id: clientProfile.id,
+                action: 'deleted', old_values: tasks.find(t => t.id === taskId), new_values: { is_deleted: true }
+              }]);
+              setTasks(tasks.filter(t => t.id !== taskId));
+            }
+          }}
+        />
       </div>
     </div>
   );
@@ -421,18 +421,19 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
 
   const filtered = tasks.filter(t => filter === 'all' || t.status === filter);
 
-  // Group by date
+  // Group by month
   const grouped = {};
   filtered.forEach(t => {
-    const d = t.created_at ? t.created_at.substring(0, 10) : 'unknown';
+    const d = t.created_at ? t.created_at.substring(0, 7) : 'unknown';
     if (!grouped[d]) grouped[d] = [];
     grouped[d].push(t);
   });
-  const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const sortedMonths = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-  const formatDate = (dateStr) => {
-    const d = new Date(dateStr + 'T12:00:00');
-    return d.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
+  const formatMonth = (monthStr) => {
+    const [y, m] = monthStr.split('-');
+    const d = new Date(parseInt(y), parseInt(m) - 1, 1);
+    return d.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
   };
 
   return (
@@ -452,12 +453,12 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
           <div>Vytvořte nový úkol kliknutím na "+ Nový úkol"</div>
         </div>
       ) : (
-        sortedDates.map(date => (
-          <div key={date}>
-            <div style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',padding:'12px 0 6px',textTransform:'capitalize'}}>
-              {formatDate(date)}
+        sortedMonths.map(month => (
+          <div key={month}>
+            <div style={{fontSize:13,fontWeight:700,color:'var(--text)',padding:'16px 0 8px',textTransform:'capitalize',borderBottom:'1px solid var(--border)',marginBottom:8}}>
+              {formatMonth(month)} ({grouped[month].length})
             </div>
-            {grouped[date].map(task => {
+            {grouped[month].map(task => {
               const comp = companies.find(c => c.id === task.company_id);
               const prio = PRIORITIES.find(p => p.value === task.priority);
               const status = STATUSES[task.status];
