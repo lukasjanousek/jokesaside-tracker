@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Jokes Aside — Klientský portál</title>
+<title>Jokes Aside â KlientskÃ½ portÃ¡l</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%236366f1'/%3E%3Ctext x='32' y='40' font-size='28' text-anchor='middle' fill='white' font-family='Arial'%3EJA%3C/text%3E%3C/svg%3E" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -107,12 +107,12 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const DIVISIONS = ['Finance', 'Legal', 'Operations/HR', 'Marketing'];
 const PRIORITIES = [
-  { value: 'low', label: 'Nízká', color: '#9ca3af' },
-  { value: 'medium', label: 'Střední', color: '#f59e0b' },
-  { value: 'high', label: 'Vysoká', color: '#ef4444' },
+  { value: 'low', label: 'NÃ­zkÃ¡', color: '#9ca3af' },
+  { value: 'medium', label: 'StÅednÃ­', color: '#f59e0b' },
+  { value: 'high', label: 'VysokÃ¡', color: '#ef4444' },
 ];
 const STATUSES = {
-  zadano: { label: 'Zadáno', class: 'badge-zadano' },
+  zadano: { label: 'ZadÃ¡no', class: 'badge-zadano' },
   pracuje_se: { label: 'Pracuje se', class: 'badge-pracuje_se' },
   hotovo: { label: 'Hotovo', class: 'badge-hotovo' },
 };
@@ -211,7 +211,7 @@ function App() {
         email: email,
         name: name,
       }]);
-      if (profileError) { setAuthError('Registrace proběhla, ale profil se nevytvořil: ' + profileError.message); return; }
+      if (profileError) { setAuthError('Registrace probÄhla, ale profil se nevytvoÅil: ' + profileError.message); return; }
       setAuthUser(data.user);
       await loadProfile(data.user.id);
     }
@@ -227,7 +227,7 @@ function App() {
     await supabase.auth.signOut();
   };
 
-  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text-secondary)'}}>Načítání...</div>;
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text-secondary)'}}>NaÄÃ­tÃ¡nÃ­...</div>;
 
   // Not logged in
   if (!authUser) {
@@ -245,17 +245,17 @@ function App() {
         <div className="header-logo">
           <div className="header-logo-icon">JA</div>
           <div>
-            <div className="header-title">Klientský portál</div>
+            <div className="header-title">KlientskÃ½ portÃ¡l</div>
             <div className="header-subtitle">{clientProfile.name}</div>
           </div>
         </div>
-        <button className="btn btn-outline btn-sm" onClick={handleSignOut}>Odhlásit</button>
+        <button className="btn btn-outline btn-sm" onClick={handleSignOut}>OdhlÃ¡sit</button>
       </div>
 
       <div className="content">
         <div className="nav-tabs">
-          <button className={`nav-tab ${page === 'tasks' ? 'active' : ''}`} onClick={() => setPage('tasks')}>Moje úkoly</button>
-          <button className={`nav-tab ${page === 'new' ? 'active' : ''}`} onClick={() => { setEditingTask(null); setPage('new'); }}>+ Nový úkol</button>
+          <button className={`nav-tab ${page === 'tasks' ? 'active' : ''}`} onClick={() => setPage('tasks')}>Moje Ãºkoly</button>
+          <button className={`nav-tab ${page === 'new' ? 'active' : ''}`} onClick={() => { setEditingTask(null); setPage('new'); }}>+ NovÃ½ Ãºkol</button>
         </div>
 
         {page === 'tasks' && (
@@ -264,7 +264,7 @@ function App() {
             companies={companies}
             onEdit={(task) => { setEditingTask(task); setPage('new'); }}
             onDelete={async (taskId) => {
-              if (!confirm('Opravdu chcete smazat tento úkol?')) return;
+              if (!confirm('Opravdu chcete smazat tento Ãºkol?')) return;
               const { error } = await supabase.from('client_tasks').update({
                 is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'client', deleted_by: clientProfile.id
               }).eq('id', taskId);
@@ -333,14 +333,14 @@ function LoginPage({ mode, setMode, onSignIn, onSignUp, error }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-title">Jokes Aside</div>
-        <div className="login-subtitle">{mode === 'login' ? 'Přihlášení do klientského portálu' : 'Registrace nového klienta'}</div>
+        <div className="login-subtitle">{mode === 'login' ? 'PÅihlÃ¡Å¡enÃ­ do klientskÃ©ho portÃ¡lu' : 'Registrace novÃ©ho klienta'}</div>
 
         {error && <div style={{background:'#fee2e2',color:'#dc2626',padding:'10px 14px',borderRadius:8,fontSize:13,marginBottom:16}}>{error}</div>}
 
         {mode === 'signup' && (
           <div style={{marginBottom:12}}>
-            <label className="label">Jméno a příjmení</label>
-            <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan Novák" />
+            <label className="label">JmÃ©no a pÅÃ­jmenÃ­</label>
+            <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan NovÃ¡k" />
           </div>
         )}
 
@@ -351,20 +351,20 @@ function LoginPage({ mode, setMode, onSignIn, onSignUp, error }) {
 
         <div style={{marginBottom:16}}>
           <label className="label">Heslo</label>
-          <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+          <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
             onKeyDown={e => { if (e.key === 'Enter') mode === 'login' ? onSignIn(email, password) : onSignUp(email, password, name); }} />
         </div>
 
         <button className="btn btn-primary" style={{width:'100%',marginBottom:12}}
           onClick={() => mode === 'login' ? onSignIn(email, password) : onSignUp(email, password, name)}>
-          {mode === 'login' ? 'Přihlásit se' : 'Registrovat se'}
+          {mode === 'login' ? 'PÅihlÃ¡sit se' : 'Registrovat se'}
         </button>
 
         <div style={{textAlign:'center',fontSize:13,color:'var(--text-secondary)'}}>
           {mode === 'login' ? (
-            <>Nemáte účet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('signup')}>Registrovat se</button></>
+            <>NemÃ¡te ÃºÄet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('signup')}>Registrovat se</button></>
           ) : (
-            <>Máte účet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('login')}>Přihlásit se</button></>
+            <>MÃ¡te ÃºÄet? <button style={{color:'var(--primary)',fontWeight:600}} onClick={() => setMode('login')}>PÅihlÃ¡sit se</button></>
           )}
         </div>
       </div>
@@ -381,12 +381,12 @@ function SetupProfile({ authUser, companies, onComplete, onSignOut }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <div className="login-title">Dokončete profil</div>
-        <div className="login-subtitle">Vyplňte údaje pro nastavení klientského účtu</div>
+        <div className="login-title">DokonÄete profil</div>
+        <div className="login-subtitle">VyplÅte Ãºdaje pro nastavenÃ­ klientskÃ©ho ÃºÄtu</div>
 
         <div style={{marginBottom:12}}>
-          <label className="label">Jméno a příjmení</label>
-          <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan Novák" />
+          <label className="label">JmÃ©no a pÅÃ­jmenÃ­</label>
+          <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Jan NovÃ¡k" />
         </div>
 
         <div style={{marginBottom:16}}>
@@ -407,9 +407,9 @@ function SetupProfile({ authUser, companies, onComplete, onSignOut }) {
             await onComplete();
             setSaving(false);
           }}>
-          {saving ? 'Ukládám...' : 'Pokračovat'}
+          {saving ? 'UklÃ¡dÃ¡m...' : 'PokraÄovat'}
         </button>
-        <button className="btn btn-outline" style={{width:'100%'}} onClick={onSignOut}>Odhlásit</button>
+        <button className="btn btn-outline" style={{width:'100%'}} onClick={onSignOut}>OdhlÃ¡sit</button>
       </div>
     </div>
   );
@@ -439,7 +439,7 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
     <div>
       {/* Status filter */}
       <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
-        {[{v:'all',l:'Vše'},{v:'zadano',l:'Zadáno'},{v:'pracuje_se',l:'Pracuje se'},{v:'hotovo',l:'Hotovo'}].map(f => (
+        {[{v:'all',l:'VÅ¡e'},{v:'zadano',l:'ZadÃ¡no'},{v:'pracuje_se',l:'Pracuje se'},{v:'hotovo',l:'Hotovo'}].map(f => (
           <button key={f.v} className={`btn btn-sm ${filter === f.v ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => setFilter(f.v)}>{f.l} {f.v !== 'all' && <span>({tasks.filter(t => t.status === f.v).length})</span>}</button>
         ))}
@@ -447,9 +447,9 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
 
       {filtered.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
-          <div className="empty-state-title">Žádné úkoly</div>
-          <div>Vytvořte nový úkol kliknutím na "+ Nový úkol"</div>
+          <div className="empty-state-icon">ð</div>
+          <div className="empty-state-title">Å½Ã¡dnÃ© Ãºkoly</div>
+          <div>VytvoÅte novÃ½ Ãºkol kliknutÃ­m na "+ NovÃ½ Ãºkol"</div>
         </div>
       ) : (
         sortedDates.map(date => (
@@ -461,7 +461,18 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
               const comp = companies.find(c => c.id === task.company_id);
               const prio = PRIORITIES.find(p => p.value === task.priority);
               const status = STATUSES[task.status];
-              return (
+              const isDone = task.status === 'hotovo';
+              return isDone ? (
+                <div key={task.id} className="task-card" style={{padding:'8px 14px',marginBottom:4,opacity:0.7}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,fontSize:13}}>
+                    <span className={`priority-dot priority-${task.priority}`} style={{flexShrink:0}} />
+                    <span style={{fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{task.title}</span>
+                    {comp && <span style={{background:comp.color+'15',color:comp.color,padding:'1px 7px',borderRadius:10,fontSize:11,fontWeight:600,flexShrink:0}}>{comp.name}</span>}
+                    <span style={{fontSize:11,color:'var(--text-secondary)',flexShrink:0}}>{task.division}</span>
+                    <span className={`badge ${status?.class || ''}`} style={{fontSize:10,padding:'2px 8px',flexShrink:0}}>{status?.label}</span>
+                  </div>
+                </div>
+              ) : (
                 <div key={task.id} className="task-card">
                   <div className="task-card-header">
                     <div className="task-card-title">{task.title}</div>
@@ -474,15 +485,13 @@ function TasksList({ tasks, companies, onEdit, onDelete }) {
                     </span>
                     {comp && <span style={{background:comp.color+'15',color:comp.color,padding:'2px 8px',borderRadius:12,fontWeight:600}}>{comp.name}</span>}
                     <span>{task.division}</span>
-                    {task.deadline && <span>📅 {new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</span>}
+                    {task.deadline && <span>{new Date(task.deadline + 'T12:00:00').toLocaleDateString('cs-CZ')}</span>}
                   </div>
-                  {task.status !== 'hotovo' && (
-                    <div style={{display:'flex',gap:8,marginTop:10,justifyContent:'flex-end'}}>
-                      <button className="btn btn-outline btn-sm" onClick={() => onEdit(task)}>Upravit</button>
-                      <button className="btn btn-sm" style={{color:'var(--danger)',border:'1px solid var(--danger)',borderRadius:8,background:'var(--surface)'}}
-                        onClick={() => onDelete(task.id)}>Smazat</button>
-                    </div>
-                  )}
+                  <div style={{display:'flex',gap:8,marginTop:10,justifyContent:'flex-end'}}>
+                    <button className="btn btn-outline btn-sm" onClick={() => onEdit(task)}>Upravit</button>
+                    <button className="btn btn-sm" style={{color:'var(--danger)',border:'1px solid var(--danger)',borderRadius:8,background:'var(--surface)'}}
+                      onClick={() => onDelete(task.id)}>Smazat</button>
+                  </div>
                 </div>
               );
             })}
@@ -504,7 +513,7 @@ function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title.trim()) { alert('Vyplňte název úkolu'); return; }
+    if (!title.trim()) { alert('VyplÅte nÃ¡zev Ãºkolu'); return; }
     if (!companyId) { alert('Vyberte firmu'); return; }
     if (!division) { alert('Vyberte divizi'); return; }
 
@@ -522,16 +531,16 @@ function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
 
   return (
     <div>
-      <div style={{fontSize:18,fontWeight:700,marginBottom:16}}>{editingTask ? 'Upravit úkol' : 'Nový úkol'}</div>
+      <div style={{fontSize:18,fontWeight:700,marginBottom:16}}>{editingTask ? 'Upravit Ãºkol' : 'NovÃ½ Ãºkol'}</div>
 
       <div style={{marginBottom:12}}>
-        <label className="label">Název úkolu *</label>
-        <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Co potřebujete?" autoFocus />
+        <label className="label">NÃ¡zev Ãºkolu *</label>
+        <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Co potÅebujete?" autoFocus />
       </div>
 
       <div style={{marginBottom:12}}>
-        <label className="label">Popis (volitelné)</label>
-        <textarea className="input" value={description} onChange={e => setDescription(e.target.value)} placeholder="Podrobnější popis úkolu..." />
+        <label className="label">Popis (volitelnÃ©)</label>
+        <textarea className="input" value={description} onChange={e => setDescription(e.target.value)} placeholder="PodrobnÄjÅ¡Ã­ popis Ãºkolu..." />
       </div>
 
       <div className="form-row">
@@ -571,9 +580,9 @@ function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
       </div>
 
       <div style={{display:'flex',gap:8,marginTop:20}}>
-        <button className="btn btn-outline" style={{flex:1}} onClick={onCancel}>Zrušit</button>
+        <button className="btn btn-outline" style={{flex:1}} onClick={onCancel}>ZruÅ¡it</button>
         <button className="btn btn-primary" style={{flex:2}} disabled={saving} onClick={handleSubmit}>
-          {saving ? 'Ukládám...' : editingTask ? 'Uložit změny' : 'Zadat úkol'}
+          {saving ? 'UklÃ¡dÃ¡m...' : editingTask ? 'UloÅ¾it zmÄny' : 'Zadat Ãºkol'}
         </button>
       </div>
     </div>
