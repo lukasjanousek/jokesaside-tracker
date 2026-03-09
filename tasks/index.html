@@ -533,6 +533,7 @@ function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
     if (!division) { alert('Vyberte divizi'); return; }
 
     setSaving(true);
+          try {
     await onSave({
       title: title.trim(),
       description: description.trim() || null,
@@ -541,7 +542,8 @@ function TaskForm({ companies, clientProfile, editingTask, onSave, onCancel }) {
       priority,
       deadline: deadline || null,
     });
-    setSaving(false);
+          } catch(err) { console.error(err); alert('Nepoda\u0159ilo se ulo\u017eit: ' + (err.message || '')); }
+          setSaving(false);
   };
 
   return (
