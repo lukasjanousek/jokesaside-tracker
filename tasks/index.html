@@ -101,7 +101,12 @@ select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csv
   button { max-width: 100%; }
 }
 
-</style>
+
+    input[type="date"] { max-width: 100%; box-sizing: border-box; }
+    @media (max-width: 600px) {
+      input[type="date"] { width: 100% !important; max-width: 100% !important; }
+    }
+  </style>
 </head>
 <body>
 <div id="root"></div>
@@ -277,6 +282,7 @@ function App() {
               clientProfile={clientProfile}
               editingTask={editingTask}
               onSave={async (taskData) => {
+              try {
                 if (editingTask) {
                   const { data, error } = await supabase.from('client_tasks')
                     .update({ ...taskData, updated_at: new Date().toISOString() })
