@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libsspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -515,6 +515,7 @@ function App() {
   const loadAllData = async () => {
     if (!supabase) return;
     try {
+                const { data: { user: authUser } } = await supabase.auth.getUser();
       setLoading(true);
       const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes, notificationsRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
@@ -528,7 +529,7 @@ function App() {
         supabase.from('retainers').select('*'),
         supabase.from('approval_requests').select('*'),
         supabase.from('client_tasks').select('*').eq('is_deleted', false).order('created_at', { ascending: false }),
-        supabase.from('notifications').select('*').eq('user_id', (await supabase.auth.getUser()).data.user?.id).order('created_at', { ascending: false }).limit(20),
+        supabase.from('notifications').select('*').eq('user_id', authUser?.id).order('created_at', { ascending: false }).limit(20),
         supabase.from('client_profiles').select('*'),
       ]);
 
