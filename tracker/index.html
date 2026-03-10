@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%236366f1'/%3E%3Ccircle cx='32' cy='32' r='24' fill='white' stroke='%236366f1' stroke-width='2'/%3E%3Cline x1='32' y1='32' x2='32' y2='16' stroke='%236366f1' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='32' y1='32' x2='44' y2='36' stroke='%236366f1' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='2.5' fill='%236366f1'/%3E%3C/svg%3E" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudfare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -889,6 +889,7 @@ function App() {
             companies={companies} users={users} entries={entries}
             currentUser={currentUser} billingLocks={billingLocks}
             approvalRequests={approvalRequests} setApprovalRequests={setApprovalRequests}
+            discountSchemes={discountSchemes} retainers={retainers}
             addBillingLock={async (lock) => {
               if (supabase) {
                 const { data, error } = await supabase.from('billing_locks').insert([lock]).select();
@@ -2032,7 +2033,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
 }
 
 // ==================== REPORTS PAGE ====================
-function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, currentUser, approvalRequests, setApprovalRequests }) {
+function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, currentUser, approvalRequests, setApprovalRequests, discountSchemes, retainers }) {
   const [dateFrom, setDateFrom] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
@@ -2086,28 +2087,55 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     return true;
   });
 
+  // Discount ratio per company: payment/credit (how much client actually pays vs ceníková cena)
+  const getDiscountRatio = (companyId) => {
+    const scheme = (discountSchemes || []).find(s => s.companyIds && s.companyIds.includes(companyId));
+    if (!scheme || scheme.no_discount) return 1;
+    const tiers = scheme.tiers;
+    if (!tiers || tiers.length === 0) return 1;
+    const refPayment = 100000;
+    const refCredit = calculateCredit(refPayment, tiers);
+    return refCredit > 0 ? refPayment / refCredit : 1;
+  };
+
   const totalMins = filtered.reduce((s,e) => s+e.duration_min, 0);
   let totalCzk = 0;
-  filtered.forEach(e => { const u = users.find(u=>u.id===e.user_id); if(u) totalCzk += (e.duration_min/60)*u.hourly_rate; });
+  let totalDiscountedCzk = 0;
+  filtered.forEach(e => {
+    const u = users.find(u=>u.id===e.user_id);
+    if(u) {
+      const amt = (e.duration_min/60)*u.hourly_rate;
+      totalCzk += amt;
+      totalDiscountedCzk += amt * getDiscountRatio(e.company_id);
+    }
+  });
   const uniqueCompanies = [...new Set(filtered.map(e=>e.company_id))].length;
   const uniqueUsers = [...new Set(filtered.map(e=>e.user_id))].length;
 
   // By company breakdown
   const byCompany = {};
   filtered.forEach(e => {
-    if (!byCompany[e.company_id]) byCompany[e.company_id] = { mins: 0, czk: 0 };
+    if (!byCompany[e.company_id]) byCompany[e.company_id] = { mins: 0, czk: 0, discountedCzk: 0 };
     byCompany[e.company_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
-    if (u) byCompany[e.company_id].czk += (e.duration_min/60)*u.hourly_rate;
+    if (u) {
+      const amt = (e.duration_min/60)*u.hourly_rate;
+      byCompany[e.company_id].czk += amt;
+      byCompany[e.company_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+    }
   });
 
   // By user breakdown
   const byUser = {};
   filtered.forEach(e => {
-    if (!byUser[e.user_id]) byUser[e.user_id] = { mins: 0, czk: 0 };
+    if (!byUser[e.user_id]) byUser[e.user_id] = { mins: 0, czk: 0, discountedCzk: 0 };
     byUser[e.user_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
-    if (u) byUser[e.user_id].czk += (e.duration_min/60)*u.hourly_rate;
+    if (u) {
+      const amt = (e.duration_min/60)*u.hourly_rate;
+      byUser[e.user_id].czk += amt;
+      byUser[e.user_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+    }
   });
 
   // Detailed breakdown per company per user (for invoice)
@@ -2115,10 +2143,14 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
   filtered.forEach(e => {
     const key = e.company_id;
     if (!invoiceData[key]) invoiceData[key] = {};
-    if (!invoiceData[key][e.user_id]) invoiceData[key][e.user_id] = { mins: 0, czk: 0, entries: [] };
+    if (!invoiceData[key][e.user_id]) invoiceData[key][e.user_id] = { mins: 0, czk: 0, discountedCzk: 0, entries: [] };
     invoiceData[key][e.user_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
-    if (u) invoiceData[key][e.user_id].czk += (e.duration_min/60)*u.hourly_rate;
+    if (u) {
+      const amt = (e.duration_min/60)*u.hourly_rate;
+      invoiceData[key][e.user_id].czk += amt;
+      invoiceData[key][e.user_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+    }
     invoiceData[key][e.user_id].entries.push(e);
   });
 
@@ -2439,9 +2471,15 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
             </div>
             <div className="stat-box">
               <div className="stat-value">{formatCzk(totalCzk)}</div>
-              <div className="stat-label">Bez DPH</div>
+              <div className="stat-label">Ceníková cena</div>
               <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:4}}>DPH: {formatCzk(dphAmount(totalCzk))}</div>
               <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:3}}>s DPH: {formatCzk(withDph(totalCzk))}</div>
+            </div>
+            <div className="stat-box">
+              <div className="stat-value" style={{color:'var(--success)'}}>{formatCzk(totalDiscountedCzk)}</div>
+              <div className="stat-label">Po slevě</div>
+              <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:4}}>DPH: {formatCzk(dphAmount(totalDiscountedCzk))}</div>
+              <div style={{fontSize:10,color:'var(--text-secondary)',marginTop:3}}>s DPH: {formatCzk(withDph(totalDiscountedCzk))}</div>
             </div>
             <div className="stat-box">
               <div className="stat-value">{uniqueCompanies}</div>
@@ -2466,6 +2504,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                     <span>{formatHours(data.mins)} · {formatCzk(data.czk)} bez DPH</span>
                   </div>
                   <div style={{fontSize:11,color:'var(--text-secondary)',textAlign:'right',marginTop:3,marginBottom:3}}>s DPH: {formatCzk(withDph(data.czk))}</div>
+                  {data.discountedCzk !== data.czk && (
+                    <div style={{fontSize:11,color:'var(--success)',textAlign:'right',marginBottom:3}}>Po slevě: {formatCzk(data.discountedCzk)} bez DPH · s DPH: {formatCzk(withDph(data.discountedCzk))}</div>
+                  )}
                   <div className="progress-bar">
                     <div className="progress-fill" style={{width:pct+'%', background: comp?.color || '#999'}} />
                   </div>
@@ -2483,7 +2524,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                 <div key={uid} className="person-row" style={{padding:'8px 0'}}>
                   <div className="person-info">
                     <div className="person-name">{user?.name}</div>
-                    <div className="person-role">{user?.position} · {formatCzk(data.czk)} bez DPH · s DPH: {formatCzk(withDph(data.czk))}</div>
+                    <div className="person-role">{user?.position} · {formatCzk(data.czk)} bez DPH · s DPH: {formatCzk(withDph(data.czk))}{data.discountedCzk !== data.czk && <span style={{color:'var(--success)'}}> · po slevě: {formatCzk(data.discountedCzk)}</span>}</div>
                   </div>
                   <div className="person-hours">{formatHours(data.mins)}</div>
                 </div>
@@ -2574,8 +2615,8 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                 return (ca?.name || '').localeCompare(cb?.name || '');
               }).map(([compId, userData]) => {
                 const comp = companies.find(c=>c.id===compId);
-                let compTotalMins = 0, compTotalCzk = 0;
-                Object.values(userData).forEach(d => { compTotalMins += d.mins; compTotalCzk += d.czk; });
+                let compTotalMins = 0, compTotalCzk = 0, compTotalDiscountedCzk = 0;
+                Object.values(userData).forEach(d => { compTotalMins += d.mins; compTotalCzk += d.czk; compTotalDiscountedCzk += d.discountedCzk; });
 
                 return (
                   <div key={compId} className="card" style={{marginBottom:12}}>
@@ -2593,6 +2634,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                         <div style={{fontWeight:700,fontSize:16}}>{formatCzk(compTotalCzk)} bez DPH</div>
                         <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:3}}>DPH 21%: {formatCzk(dphAmount(compTotalCzk))}</div>
                         <div style={{fontSize:12,fontWeight:600,marginTop:3}}>s DPH: {formatCzk(withDph(compTotalCzk))}</div>
+                        {compTotalDiscountedCzk !== compTotalCzk && (
+                          <div style={{fontSize:11,color:'var(--success)',marginTop:4,fontWeight:600}}>Po slevě: {formatCzk(compTotalDiscountedCzk)} bez DPH</div>
+                        )}
                       </div>
                     </div>
 
@@ -2603,7 +2647,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                         <div key={uid} style={{marginBottom:10}}>
                           <div style={{display:'flex',justifyContent:'space-between',fontSize:13,fontWeight:600,marginBottom:4}}>
                             <span>{user?.name} <span style={{fontWeight:400,color:'var(--text-secondary)'}}>({user?.position}, {user?.hourly_rate?.toLocaleString('cs-CZ')} Kč/h)</span></span>
-                            <span>{formatHours(data.mins)} · {formatCzk(data.czk)} bez DPH</span>
+                            <span>{formatHours(data.mins)} · {formatCzk(data.czk)} bez DPH{data.discountedCzk !== data.czk && <span style={{color:'var(--success)',fontWeight:500}}> · po slevě: {formatCzk(data.discountedCzk)}</span>}</span>
                           </div>
                           {data.entries.sort((a,b)=>a.date.localeCompare(b.date)).map(e => (
                             <div key={e.id} style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--text-secondary)',padding:'2px 0 2px 12px'}}>
@@ -2629,6 +2673,12 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                     <div style={{fontWeight:700,fontSize:18,color:'var(--primary)'}}>{formatCzk(totalCzk)} bez DPH</div>
                     <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:3}}>DPH 21%: {formatCzk(dphAmount(totalCzk))}</div>
                     <div style={{fontWeight:700,fontSize:16,color:'var(--primary)',marginTop:3}}>s DPH: {formatCzk(withDph(totalCzk))}</div>
+                    {totalDiscountedCzk !== totalCzk && (
+                      <div style={{fontWeight:700,fontSize:15,color:'var(--success)',marginTop:6}}>Po slevě: {formatCzk(totalDiscountedCzk)} bez DPH</div>
+                    )}
+                    {totalDiscountedCzk !== totalCzk && (
+                      <div style={{fontWeight:600,fontSize:13,color:'var(--success)',marginTop:2}}>s DPH: {formatCzk(withDph(totalDiscountedCzk))}</div>
+                    )}
                     <div style={{fontSize:12,color:'var(--text-secondary)'}}>{formatHours(totalMins)}</div>
                   </div>
                 </div>
