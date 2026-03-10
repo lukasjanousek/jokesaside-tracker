@@ -463,6 +463,8 @@ function App() {
   const [users, setUsers] = useState([]);
   const [entries, setEntries] = useState([]);
   const [timerRunning, setTimerRunning] = useState(false);
+  const recurringGeneratedRef = useRef(false);
+  const entriesRef = useRef([]);
   const [timerStart, setTimerStart] = useState(null);
   const [timerCompany, setTimerCompany] = useState(null);
   const [timerDesc, setTimerDesc] = useState('');
@@ -628,9 +630,14 @@ function App() {
     return () => clearInterval(iv);
   }, [timerRunning, timerStart]);
 
+  // Keep entriesRef in sync
+  useEffect(() => { entriesRef.current = entries; }, [entries]);
+
   // Generate entries from recurring meetings
   useEffect(() => {
+    if (recurringGeneratedRef.current) return;
     const today = new Date().toISOString().slice(0, 10);
+    recurringGeneratedRef.current = true;
     recurringMeetings.forEach(meeting => {
       // Support both camelCase and snake_case property names
       const isActive = meeting.isActive ?? meeting.is_active;
@@ -677,7 +684,7 @@ function App() {
       datesToGenerate.forEach(date => {
         confirmedIds.forEach(userId => {
           companyIds.forEach(companyId => {
-            const exists = entries.some(e =>
+            const exists = entriesRef.current.some(e =>
               e.recurring_meeting_id === meeting.id &&
               e.date === date &&
               e.user_id === userId &&
@@ -698,7 +705,7 @@ function App() {
         });
       });
     });
-  }, [recurringMeetings, entries]);
+  }, [recurringMeetings]);
 
   const getSchemeForCompany = useCallback((companyId) => {
     return discountSchemes.find(scheme => scheme.companyIds && scheme.companyIds.includes(companyId)) || null;
