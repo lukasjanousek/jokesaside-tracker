@@ -1234,8 +1234,8 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
               <div style={{marginBottom:12}}>
                 <label style={{fontSize:12,fontWeight:600,color:'var(--text-secondary)',display:'block',marginBottom:6}}>Den</label>
                 {meetingFreq === 'weekly' && (
-                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                          ,'Út','St','Čt','Pá'].map((day, idx) => (
+                  {['Po',div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                          {['Po','Út','St','Čt','Pá'].map((day, idx) => (
                       <button key={idx} onClick={()=>setMeetingDay(idx+1)} style={{flex:1,minWidth:50,padding:'8px 12px',fontSize:13,fontWeight:600,border:'1px solid var(--border)',borderRadius:'8px',background:meetingDay===idx+1?'var(--primary)':'var(--surface)',color:meetingDay===idx+1?'white':'var(--text)',cursor:'pointer'}}>{day}</button>
                     ))}
                   </div>
