@@ -359,6 +359,49 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
       <div className="company-grid">
         {companies.filter(c => c.is_active).map(c => {
           const b = getCompanyBudget(c.id, month);
+
+          // Calculate planned future recurring costs
+          let planned = 0;
+          const today = new Date().toISOString().slice(0, 10);
+          const [my, mm] = month.split('-');
+          const lastDay = new Date(parseInt(my), parseInt(mm), 0).getDate();
+          const monthEnd = month + '-' + String(lastDay).padStart(2, '0');
+          const monthStart = month + '-01';
+          recurringMeetings.forEach(meeting => {
+            const isActive = meeting.isActive ?? meeting.is_active ?? true;
+            if (!isActive) return;
+            const mCompanyIds = meeting.companyIds || meeting.company_ids || [];
+            if (!mCompanyIds.includes(c.id)) return;
+            const mStartDate = meeting.startDate || meeting.start_date;
+            const mEndDate = meeting.endDate || meeting.end_date;
+            const mDayOfWeek = meeting.dayOfWeek ?? meeting.day_of_week ?? 0;
+            const mDayOfMonth = meeting.dayOfMonth ?? meeting.day_of_month ?? 1;
+            const mDurationMin = meeting.durationMin || meeting.duration_min;
+            const confirmedIds = meeting.confirmedParticipantIds || meeting.confirmed_participant_ids || meeting.participantIds || meeting.participant_ids || [];
+            const startD = today < monthStart ? monthStart : today;
+            const iterDate = new Date(startD + 'T12:00:00');
+            iterDate.setDate(iterDate.getDate() + 1);
+            const endD = new Date(monthEnd + 'T12:00:00');
+            const meetingEnd = mEndDate ? new Date(mEndDate + 'T12:00:00') : endD;
+            const actualEnd = meetingEnd < endD ? meetingEnd : endD;
+            while (iterDate <= actualEnd) {
+              if (mStartDate && iterDate.toISOString().slice(0,10) < mStartDate) { iterDate.setDate(iterDate.getDate() + 1); continue; }
+              const dow = iterDate.getDay();
+              let shouldCount = false;
+              if (meeting.frequency === 'daily' && dow >= 1 && dow <= 5) shouldCount = true;
+              else if (meeting.frequency === 'weekly' && dow === mDayOfWeek) shouldCount = true;
+              else if (meeting.frequency === 'monthly' && iterDate.getDate() === mDayOfMonth) shouldCount = true;
+              if (shouldCount) {
+                confirmedIds.forEach(userId => {
+                  const user = users.find(u => u.id === userId);
+                  if (user) planned += (mDurationMin / 60) * user.hourly_rate;
+                });
+              }
+              iterDate.setDate(iterDate.getDate() + 1);
+            }
+          });
+          b.planned = planned;
+          b.plannedPct = b.total > 0 ? Math.min((planned / b.total) * 100, 100 - b.pct) : 0;
           const progressColor = b.pct > 90 ? 'var(--danger)' : b.pct > 70 ? 'var(--warning)' : 'var(--success)';
           return (
             <div key={c.id} className="company-card" onClick={() => onSelectCompany(c.id)}>
@@ -366,12 +409,18 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 {COMPANY_INITIALS[c.name] || c.name.charAt(0)}
               </div>
               <div className="company-name">{c.name}</div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: b.pct+'%', background: progressColor}} />
+              <div className="progress-bar" style={{position:'relative'}}>
+                <div className="progress-fill" style={{width: b.pct+'%', background: progressColor, position:'absolute', left:0, top:0, height:'100%', borderRadius:3, zIndex:2}} />
+                {b.plannedPct > 0 && <div style={{width: (b.pct + b.plannedPct)+'%', background: c.color || '#999', opacity: 0.25, position:'absolute', left:0, top:0, height:'100%', borderRadius:3, zIndex:1}} />}
               </div>
               <div className="progress-text">
                 {formatCzk(b.used)} / {formatCzk(b.total)} <span style={{fontSize:10,color:'var(--text-secondary)'}}>bez DPH</span>
               </div>
+              {b.planned > 0 && (
+                <div style={{fontSize:10, color: c.color || 'var(--text-secondary)', fontWeight:500, marginTop:2, opacity:0.7}}>
+                  Naplánováno: +{formatCzk(b.planned)}
+                </div>
+              )}
               {b.total > 0 && (
                 <div style={{fontSize:11, color: b.remaining >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:600, marginTop:4}}>
                   {b.remaining >= 0 ? `ZbÃ½vÃ¡ ${formatCzk(b.remaining)}` : `PÅeÄerpÃ¡no ${formatCzk(Math.abs(b.remaining))}`}
