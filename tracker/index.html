@@ -201,7 +201,7 @@ button { cursor: pointer; border: none; background: none; }
     'admin.js', 'render.js'
   ];
   const base = '/tracker/';
-  Promise.all(files.map(f => fetch(base + f).then(r => r.text())))
+  Promise.all(files.map(f => fetch(base + f).then(r => r.text()).then(t => { try { return decodeURIComponent(escape(t)); } catch(e) { return t; } })))
     .then(sources => {
       const combined = sources.join('\n;\n');
       const transformed = Babel.transform(combined, { presets: ['react'] }).code;
