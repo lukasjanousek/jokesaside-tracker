@@ -201,7 +201,7 @@ button { cursor: pointer; border: none; background: none; }
     'admin.js', 'render.js'
   ];
   const base = '/tracker/';
-  // Fix double-encoded UTF-8 and convert non-ASCII to \uXXXX escapes
+  // Fix double-encoded UTF-8 at character level (handles mixed content)
   function normalizeEncoding(t) {
     var r='',i,c,c2,c3;
     for(i=0;i<t.length;i++){
@@ -215,13 +215,7 @@ button { cursor: pointer; border: none; background: none; }
       }
       r+=t.charAt(i);
     }
-    var out='';
-    for(i=0;i<r.length;i++){
-      c=r.charCodeAt(i);
-      if(c>127){out+='\\u'+('0000'+c.toString(16)).slice(-4);}
-      else{out+=r.charAt(i);}
-    }
-    return out;
+    return r;
   }
   Promise.all(files.map(f => fetch(base + f).then(r => r.text()).then(normalizeEncoding)))
     .then(sources => {
