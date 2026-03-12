@@ -201,7 +201,29 @@ button { cursor: pointer; border: none; background: none; }
     'admin.js', 'render.js'
   ];
   const base = '/tracker/';
-  Promise.all(files.map(f => fetch(base + f).then(r => r.text()).then(t => { try { return decodeURIComponent(escape(t)); } catch(e) { return t; } })))
+  // Fix double-encoded UTF-8 and convert non-ASCII to \uXXXX escapes
+  function normalizeEncoding(t) {
+    var r='',i,c,c2,c3;
+    for(i=0;i<t.length;i++){
+      c=t.charCodeAt(i);
+      if(c>=0xC0&&c<=0xDF&&i+1<t.length){
+        c2=t.charCodeAt(i+1);
+        if(c2>=0x80&&c2<=0xBF){r+=String.fromCharCode(((c&0x1F)<<6)|(c2&0x3F));i++;continue;}
+      }else if(c>=0xE0&&c<=0xEF&&i+2<t.length){
+        c2=t.charCodeAt(i+1);c3=t.charCodeAt(i+2);
+        if(c2>=0x80&&c2<=0xBF&&c3>=0x80&&c3<=0xBF){r+=String.fromCharCode(((c&0x0F)<<12)|((c2&0x3F)<<6)|(c3&0x3F));i+=2;continue;}
+      }
+      r+=t.charAt(i);
+    }
+    var out='';
+    for(i=0;i<r.length;i++){
+      c=r.charCodeAt(i);
+      if(c>127){out+='\\u'+('0000'+c.toString(16)).slice(-4);}
+      else{out+=r.charAt(i);}
+    }
+    return out;
+  }
+  Promise.all(files.map(f => fetch(base + f).then(r => r.text()).then(normalizeEncoding)))
     .then(sources => {
       const combined = sources.join('\n;\n');
       const transformed = Babel.transform(combined, { presets: ['react'] }).code;
