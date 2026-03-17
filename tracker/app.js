@@ -174,11 +174,15 @@ function App() {
     return () => clearInterval(iv);
   }, [timerRunning, timerStart]);
 
-  // Generate entries from recurring meetings
+  // Generate entries from recurring meetings (batch insert to prevent duplicates)
   useEffect(() => {
+    if (!supabase || recurringMeetings.length === 0) return;
+    if (window.__generatingRecurring) return;
+
     const today = new Date().toISOString().slice(0, 10);
+    const toInsert = [];
+
     recurringMeetings.forEach(meeting => {
-      // Support both camelCase and snake_case property names
       const isActive = meeting.isActive ?? meeting.is_active;
       const mStartDate = meeting.startDate || meeting.start_date;
       const mEndDate = meeting.endDate || meeting.end_date;
@@ -199,38 +203,34 @@ function App() {
       while (currentDate < maxDate) {
         const dateStr = currentDate.toISOString().slice(0, 10);
         const dayOfWeek = currentDate.getDay();
-
         let shouldGenerate = false;
-        if (meeting.frequency === 'daily' && dayOfWeek >= 1 && dayOfWeek <= 5) {
-          shouldGenerate = true;
-        } else if (meeting.frequency === 'weekly' && dayOfWeek === mDayOfWeek) {
-          shouldGenerate = true;
-        } else if (meeting.frequency === 'monthly' && currentDate.getDate() === mDayOfMonth) {
-          shouldGenerate = true;
-        }
-
-        if (shouldGenerate) {
-          datesToGenerate.push(dateStr);
-        }
+        if (meeting.frequency === 'daily' && dayOfWeek >= 1 && dayOfWeek <= 5) shouldGenerate = true;
+        else if (meeting.frequency === 'weekly' && dayOfWeek === mDayOfWeek) shouldGenerate = true;
+        else if (meeting.frequency === 'monthly' && currentDate.getDate() === mDayOfMonth) shouldGenerate = true;
+        if (shouldGenerate) datesToGenerate.push(dateStr);
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Generate entries for confirmed participants and companies
-      if (!supabase) return;
       const confirmedIds = meeting.confirmedParticipantIds || meeting.confirmed_participant_ids || meeting.participantIds || meeting.participant_ids || [];
       const companyIds = meeting.companyIds || meeting.company_ids || [];
-      console.log('[Meetings] Generating entries for:', meeting.description, '| dates:', datesToGenerate.length, '| participants:', confirmedIds.length, '| companies:', companyIds.length);
+
       datesToGenerate.forEach(date => {
         confirmedIds.forEach(userId => {
           companyIds.forEach(companyId => {
-            const exists = entries.some(e =>
+            const existsInDb = entries.some(e =>
               e.recurring_meeting_id === meeting.id &&
               e.date === date &&
               e.user_id === userId &&
               e.company_id === companyId
             );
-            if (!exists) {
-              addEntry({
+            const existsInBatch = toInsert.some(e =>
+              e.recurring_meeting_id === meeting.id &&
+              e.date === date &&
+              e.user_id === userId &&
+              e.company_id === companyId
+            );
+            if (!existsInDb && !existsInBatch) {
+              toInsert.push({
                 user_id: userId,
                 company_id: companyId,
                 description: meeting.description,
@@ -244,6 +244,29 @@ function App() {
         });
       });
     });
+
+    if (toInsert.length === 0) return;
+
+    console.log('[Meetings] Batch inserting', toInsert.length, 'recurring entries');
+    window.__generatingRecurring = true;
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('time_entries')
+          .insert(toInsert)
+          .select();
+        if (error) {
+          console.error('[Meetings] Batch insert error:', error);
+        } else if (data) {
+          setEntries(prev => [...prev, ...data]);
+        }
+      } catch(err) {
+        console.error('[Meetings] Error generating recurring entries:', err);
+      } finally {
+        window.__generatingRecurring = false;
+      }
+    })();
   }, [recurringMeetings, entries]);
 
   const getSchemeForCompany = useCallback((companyId) => {
