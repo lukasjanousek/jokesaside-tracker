@@ -19,6 +19,7 @@ function App() {
   const [recurringMeetings, setRecurringMeetings] = useState([]);
   const [clientTasks, setClientTasks] = useState([]);
   const [clientProfiles, setClientProfiles] = useState([]);
+  const [deletedRecurringEntries, setDeletedRecurringEntries] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,7 +60,7 @@ function App() {
     if (!supabase) return;
     try {
       setLoading(true);
-      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes] = await Promise.all([
+      const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes, deletedRecurringRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*').eq('is_active', true),
         supabase.from('time_entries').select('*').order('created_at', { ascending: false }),
@@ -72,6 +73,7 @@ function App() {
         supabase.from('approval_requests').select('*'),
         supabase.from('client_tasks').select('*').eq('is_deleted', false).order('created_at', { ascending: false }),
         supabase.from('client_profiles').select('*'),
+        supabase.from('deleted_recurring_entries').select('*'),
       ]);
 
       if (companiesRes.data) setCompanies(companiesRes.data);
@@ -113,6 +115,7 @@ function App() {
       if (approvalRes && approvalRes.data) setApprovalRequests(approvalRes.data);
       if (clientTasksRes && clientTasksRes.data) setClientTasks(clientTasksRes.data);
       if (clientProfilesRes && clientProfilesRes.data) setClientProfiles(clientProfilesRes.data);
+      if (deletedRecurringRes && deletedRecurringRes.data) setDeletedRecurringEntries(deletedRecurringRes.data);
       // Load notifications for current user
       const { data: notifData } = await supabase.from('task_notifications').select('*').order('created_at', { ascending: false });
       if (notifData) setNotifications(notifData);
@@ -229,7 +232,13 @@ function App() {
               e.user_id === userId &&
               e.company_id === companyId
             );
-            if (!existsInDb && !existsInBatch) {
+            const isDeleted = deletedRecurringEntries.some(d =>
+              d.recurring_meeting_id === meeting.id &&
+              d.date === date &&
+              d.user_id === userId &&
+              d.company_id === companyId
+            );
+            if (!existsInDb && !existsInBatch && !isDeleted) {
               toInsert.push({
                 user_id: userId,
                 company_id: companyId,
@@ -267,7 +276,7 @@ function App() {
         window.__generatingRecurring = false;
       }
     })();
-  }, [recurringMeetings, entries]);
+  }, [recurringMeetings, entries, deletedRecurringEntries]);
 
   const getSchemeForCompany = useCallback((companyId) => {
     return discountSchemes.find(scheme => scheme.companyIds && scheme.companyIds.includes(companyId)) || null;
@@ -323,11 +332,25 @@ function App() {
   const deleteEntry = async (entryId) => {
     if (!supabase) return;
     try {
+      const entry = entries.find(e => e.id === entryId);
       const { error } = await supabase
         .from('time_entries')
         .delete()
         .eq('id', entryId);
       if (error) throw error;
+      if (entry && entry.recurring_meeting_id) {
+        const delRecord = {
+          recurring_meeting_id: entry.recurring_meeting_id,
+          date: entry.date,
+          user_id: entry.user_id,
+          company_id: entry.company_id
+        };
+        const { data: delData } = await supabase
+          .from('deleted_recurring_entries')
+          .upsert([delRecord], { onConflict: 'recurring_meeting_id,date,user_id,company_id' })
+          .select();
+        if (delData) setDeletedRecurringEntries(prev => [...prev, delData[0]]);
+      }
       setEntries(prev => prev.filter(e => e.id !== entryId));
     } catch (err) {
       console.error('Error deleting entry:', err);
