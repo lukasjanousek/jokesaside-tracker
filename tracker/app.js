@@ -24,6 +24,7 @@ function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [pendingApproval, setPendingApproval] = useState(false);
 
   // Check session on mount
   useEffect(() => {
@@ -35,7 +36,30 @@ function App() {
       }
     };
     checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await loadUserProfile(session.user.id);
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleGoogleLogin = async () => {
+    if (!supabase) return;
+    try {
+      setLoading(true);
+      setAuthError('');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/tracker/' }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setAuthError(err.message || 'Chyba pri prihlaseni pres Google');
+      setLoading(false);
+    }
+  };
 
   const loadUserProfile = async (userId) => {
     if (!supabase) return;
@@ -47,6 +71,11 @@ function App() {
         .single();
 
       if (profile) {
+        if (!profile.is_approved) {
+          setCurrentUser(profile);
+          setPendingApproval(true);
+          return;
+        }
         setCurrentUser(profile);
         setIsLoggedIn(true);
         await loadAllData();
@@ -433,8 +462,32 @@ function App() {
     if (companyId !== undefined) setSelectedCompanyId(companyId);
   };
 
+  if (pendingApproval) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <div className="login-logo">Jokes Aside</div>
+          <div className="login-subtitle">Time Tracker</div>
+          <div style={{padding:'24px 0',textAlign:'center'}}>
+            <div style={{fontSize:48,marginBottom:16}}>&#9203;</div>
+            <h3 style={{marginBottom:8,color:'var(--text-primary)'}}>Ceka se na schvaleni</h3>
+            <p style={{color:'var(--text-secondary)',fontSize:14,lineHeight:1.5}}>
+              Vas ucet <strong>{currentUser?.email}</strong> ceka na schvaleni administratorem.
+              Jakmile bude schvalen, budete se moci prihlasit.
+            </p>
+          </div>
+          <button className="btn btn-outline" style={{width:'100%'}} onClick={async () => {
+            if(supabase) { await supabase.auth.signOut(); }
+            setPendingApproval(false);
+            setCurrentUser(null);
+          }}>Odhlasit se</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
-    return <LoginPage onLoginSuccess={handleLogin} onSignUp={handleSignUp} loading={loading} error={authError} />;
+    return <LoginPage onLoginSuccess={handleLogin} onSignUp={handleSignUp} onGoogleLogin={handleGoogleLogin} loading={loading} error={authError} />;
   }
 
   return (
