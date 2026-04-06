@@ -107,6 +107,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         {isAdmin && <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>LidÃ©</button>}
         <button className={`tab ${tab==='companies'?'active':''}`} onClick={()=>setTab('companies')}>Firmy</button>
         {isAdmin && <button className={`tab ${tab==='tiers'?'active':''}`} onClick={()=>setTab('tiers')}>SlevovÃ¡ pÃ¡sma</button>}
+        {isAdmin && <button className={`tab ${tab==='approval'?'active':''}`} onClick={()=>setTab('approval')}>Schvaleni</button>}
       </div>
 
       {tab === 'profile' && currentUser && (
@@ -544,6 +545,50 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
           </div>
         </div>
       )}
+
+      {tab === 'approval' && isAdmin && (
+        <div>
+          <h3 style={{marginBottom:16}}>Uzivatele cekajici na schvaleni</h3>
+          {(() => {
+            const pending = users.filter(u => u.is_approved === false);
+            if (pending.length === 0) {
+              return <div style={{padding:24,textAlign:'center',color:'var(--text-secondary)'}}>Zadni uzivatele necekaji na schvaleni.</div>;
+            }
+            return (
+              <div className="scroll-x">
+                <table className="admin-table">
+                  <thead><tr><th>Jmeno</th><th>Email</th><th>Registrace</th><th>Akce</th></tr></thead>
+                  <tbody>
+                    {pending.map(u => (
+                      <tr key={u.id}>
+                        <td style={{fontWeight:500}}>{u.name}</td>
+                        <td>{u.email}</td>
+                        <td style={{fontSize:12,color:'var(--text-secondary)'}}>{u.created_at ? new Date(u.created_at).toLocaleDateString('cs-CZ') : ''}</td>
+                        <td style={{display:'flex',gap:8}}>
+                          <button className="btn btn-primary btn-sm" onClick={async () => {
+                            const sb = window.__supabase;
+                            if (!sb) return;
+                            await sb.from('profiles').update({is_approved: true}).eq('id', u.id);
+                            setUsers(prev => prev.map(x => x.id === u.id ? {...x, is_approved: true} : x));
+                          }}>Schvalit</button>
+                          <button className="btn btn-outline btn-sm" style={{color:'var(--danger)'}} onClick={async () => {
+                            if (!confirm('Opravdu chcete zamítnout uzivatele ' + u.name + '?')) return;
+                            const sb = window.__supabase;
+                            if (!sb) return;
+                            await sb.from('profiles').update({is_active: false}).eq('id', u.id);
+                            setUsers(prev => prev.filter(x => x.id !== u.id));
+                          }}>Zamitnout</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
     </div>
   );
 }
