@@ -91,7 +91,7 @@ function App() {
       setLoading(true);
       const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes, deletedRecurringRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
-        supabase.from('profiles').select('*').eq('is_active', true),
+        supabase.from('profiles').select('*'),
         supabase.from('time_entries').select('*').order('created_at', { ascending: false }),
         supabase.from('discount_schemes').select('*'),
         supabase.from('discount_scheme_companies').select('*'),
