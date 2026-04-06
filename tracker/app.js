@@ -206,10 +206,14 @@ function App() {
     return () => clearInterval(iv);
   }, [timerRunning, timerStart]);
 
+  // Keep a window-level reference to entries for recurring generation
+  useEffect(() => { window.__latestEntries = entries; }, [entries]);
+
   // Generate entries from recurring meetings (batch insert to prevent duplicates)
   useEffect(() => {
     if (!supabase || recurringMeetings.length === 0) return;
     if (window.__generatingRecurring) return;
+    const currentEntries = window.__latestEntries || [];
 
     const today = new Date().toISOString().slice(0, 10);
     const toInsert = [];
@@ -249,7 +253,7 @@ function App() {
       datesToGenerate.forEach(date => {
         confirmedIds.forEach(userId => {
           companyIds.forEach(companyId => {
-            const existsInDb = entries.some(e =>
+            const existsInDb = currentEntries.some(e =>
               e.recurring_meeting_id === meeting.id &&
               e.date === date &&
               e.user_id === userId &&
@@ -305,7 +309,7 @@ function App() {
         window.__generatingRecurring = false;
       }
     })();
-  }, [recurringMeetings, entries, deletedRecurringEntries]);
+  }, [recurringMeetings, deletedRecurringEntries]);
 
   const getSchemeForCompany = useCallback((companyId) => {
     return discountSchemes.find(scheme => scheme.companyIds && scheme.companyIds.includes(companyId)) || null;
@@ -362,11 +366,7 @@ function App() {
     if (!supabase) return;
     try {
       const entry = entries.find(e => e.id === entryId);
-      const { error } = await supabase
-        .from('time_entries')
-        .delete()
-        .eq('id', entryId);
-      if (error) throw error;
+      // For recurring entries: optimistically add to deleted list FIRST to prevent regeneration
       if (entry && entry.recurring_meeting_id) {
         const delRecord = {
           recurring_meeting_id: entry.recurring_meeting_id,
@@ -374,12 +374,18 @@ function App() {
           user_id: entry.user_id,
           company_id: entry.company_id
         };
-        const { data: delData } = await supabase
+        setDeletedRecurringEntries(prev => [...prev, delRecord]);
+        // Persist to DB in background
+        supabase
           .from('deleted_recurring_entries')
           .upsert([delRecord], { onConflict: 'recurring_meeting_id,date,user_id,company_id' })
-          .select();
-        if (delData) setDeletedRecurringEntries(prev => [...prev, delData[0]]);
+          .then(({ error: delErr }) => { if (delErr) console.error('Error saving deleted recurring entry:', delErr); });
       }
+      const { error } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('id', entryId);
+      if (error) throw error;
       setEntries(prev => prev.filter(e => e.id !== entryId));
     } catch (err) {
       console.error('Error deleting entry:', err);
