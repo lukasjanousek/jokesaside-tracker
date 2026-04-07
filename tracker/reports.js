@@ -854,6 +854,8 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                   })()}
                 </div>
               )}
+            </div>
+          )}
           {/* Existing locks list */}
           {billingLocks.length > 0 && (
             <div style={{marginTop:20}}>
