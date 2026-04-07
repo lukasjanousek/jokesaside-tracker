@@ -351,10 +351,11 @@ function App() {
   const addEntry = async (entry) => {
     if (!supabase) return false;
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .insert([entry])
-        .select();
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: save took too long')), 10000));
+      const { data, error } = await Promise.race([
+        supabase.from('time_entries').insert([entry]).select(),
+        timeoutPromise
+      ]);
       if (error) throw error;
       if (data) setEntries(prev => [...prev, data[0]]);
       return true;
