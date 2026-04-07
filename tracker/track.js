@@ -176,9 +176,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
 
               <input className="input" type="date" value={date} onChange={e=>setDate(e.target.value)} style={{marginBottom:8,fontSize:13}} />
 
-              <button className="btn btn-primary" style={{width:'100%',fontSize:13,...(saveStatus === 'success' ? {background:'#16a34a',borderColor:'#16a34a',transition:'background 0.3s'} : saveStatus === 'error' ? {background:'#dc2626',borderColor:'#dc2626',transition:'background 0.3s'} : {transition:'background 0.3s'})}} onClick={handleAddManual} disabled={saveStatus === 'saving'}>{saveStatus === 'saving' ? 'Ukládám...' : saveStatus === 'success' ? '✓ Uloženo' : saveStatus === 'error' ? '✗ Chyba' : '
-                UloÅ¾it
-              '}</button>
+              <button className="btn btn-primary" style={{width:'100%',fontSize:13,...(saveStatus === 'success' ? {background:'#16a34a',borderColor:'#16a34a',transition:'background 0.3s'} : saveStatus === 'error' ? {background:'#dc2626',borderColor:'#dc2626',transition:'background 0.3s'} : {transition:'background 0.3s'})}} onClick={handleAddManual} disabled={saveStatus === 'saving'}>{saveStatus === 'saving' ? 'Ukl\u00e1d\u00e1m...' : saveStatus === 'success' ? '\u2713 Ulo\u017eeno' : saveStatus === 'error' ? '\u2717 Chyba' : 'Ulo\u017eit'}</button>
             </div>
           </div>
           </div>
