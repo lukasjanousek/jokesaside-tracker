@@ -349,7 +349,7 @@ function App() {
   }, [companies, entries, users, retainers, getSchemeForCompany]);
 
   const addEntry = async (entry) => {
-    if (!supabase) return;
+    if (!supabase) return false;
     try {
       const { data, error } = await supabase
         .from('time_entries')
@@ -357,8 +357,10 @@ function App() {
         .select();
       if (error) throw error;
       if (data) setEntries(prev => [...prev, data[0]]);
+      return true;
     } catch (err) {
       console.error('Error adding entry:', err);
+      return false;
     }
   };
 
@@ -567,8 +569,8 @@ function App() {
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
-            onAddManual={(compId, desc, mins, date, userId) => {
-              addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+            onAddManual={async (compId, desc, mins, date, userId) => {
+              return addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
             }}
             currentUser={currentUser}
             recurringMeetings={recurringMeetings}
@@ -603,8 +605,8 @@ function App() {
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
-            onAddManual={(compId, desc, mins, date, userId) => {
-              addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+            onAddManual={async (compId, desc, mins, date, userId) => {
+              return addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
             }}
             onDeleteEntry={deleteEntry}
             onUpdateEntry={updateEntry}
