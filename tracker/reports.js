@@ -17,7 +17,12 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
   const [showApprovalSection, setShowApprovalSection] = useState(false);
   const [activeTab, setActiveTab] = useState('reports');
   const myPendingApprovals = (approvalRequests||[]).filter(ar => ar.status === 'pending' && users.find(u => u.id === ar.user_id)?.manager_id === currentUser?.id);
-  const [userFinalizations, setUserFinalizations] = useState({});
+  const [userFinalizations, setUserFinalizations] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('tracker_finalizations') || '{}'); } catch { return {}; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('tracker_finalizations', JSON.stringify(userFinalizations)); } catch {}
+  }, [userFinalizations]);
 
   // Check if current period is already locked
   const isPeriodLocked = billingLocks.some(lock =>
@@ -803,54 +808,52 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
               )}
 
               {/* Generate / Lock button */}
-              {!isPeriodLocked && !hasOverlappingLock && currentUser?.is_admin && (() => {
-                const usersInPeriod = [...new Set(entries.filter(e => e.date >= dateFrom && e.date <= dateTo).map(e => e.user_id))];
-                const usersNeedingApproval = usersInPeriod.filter(uid => {
-                  const u = users.find(u2 => u2.id === uid);
-                  return u?.manager_id;
-                });
-                const allApproved = usersNeedingApproval.every(uid => 
-                  (approvalRequests||[]).some(ar => ar.user_id === uid && ar.period_from === dateFrom && ar.period_to === dateTo && ar.status === 'approved')
-                );
-                return allApproved;
-              })() && (
+              {!isPeriodLocked && !hasOverlappingLock && currentUser?.is_admin && (
                 <div>
-                  {showInvoiceConfirm ? (
-                    <div className="card" style={{borderColor:'var(--danger)',background:'#fef2f2'}}>
-                      <div style={{fontWeight:600,marginBottom:8,color:'var(--danger)'}}>
-                        <span style={{width:16,height:16,display:'inline-flex',verticalAlign:'middle',marginRight:6}}>{Icons.lock}</span>
-                        Opravdu uzamknout období?
+                  <div style={{display:'flex',gap:8,marginBottom:8}}>
+                    <button className="btn btn-outline" style={{flex:1}} onClick={handleDownloadPDFOnly}>
+                      <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.download}</span> Stáhnout podklady k fakturaci (PDF)
+                    </button>
+                  </div>
+                  {(() => {
+                    const usersInPeriod = [...new Set(entries.filter(e => e.date >= dateFrom && e.date <= dateTo).map(e => e.user_id))];
+                    const usersNeedingApproval = usersInPeriod.filter(uid => {
+                      const u = users.find(u2 => u2.id === uid);
+                      return u?.manager_id;
+                    });
+                    const allApproved = usersNeedingApproval.every(uid => 
+                      (approvalRequests||[]).some(ar => ar.user_id === uid && ar.period_from === dateFrom && ar.period_to === dateTo && ar.status === 'approved')
+                    );
+                    const periodKey = dateFrom + '_' + dateTo;
+                    const usersWithEntries = [...new Set(entries.filter(e => e.date >= dateFrom && e.date <= dateTo).map(e => e.user_id))];
+                    const finalizedCount = usersWithEntries.filter(uid => userFinalizations[periodKey + '_' + uid]).length;
+                    const allFinalized = finalizedCount >= usersWithEntries.length && usersWithEntries.length > 0;
+                    if (!allFinalized) return <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:4}}>Pro uzamčení období musí být všechny výkazy finalizované ({finalizedCount}/{usersWithEntries.length}).</div>;
+                    if (!allApproved && usersNeedingApproval.length > 0) return <div style={{fontSize:12,color:'var(--text-secondary)',marginTop:4}}>Pro uzamčení období musí být schváleny všechny approval requesty.</div>;
+                    return showInvoiceConfirm ? (
+                      <div className="card" style={{borderColor:'var(--danger)',background:'#fef2f2',marginTop:8}}>
+                        <div style={{fontWeight:600,marginBottom:8,color:'var(--danger)'}}>
+                          <span style={{width:16,height:16,display:'inline-flex',verticalAlign:'middle',marginRight:6}}>{Icons.lock}</span>
+                          Opravdu uzamknout období?
+                        </div>
+                        <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
+                          Po vygenerování fakturačního podkladu se uzamknou všechny záznamy za období {dateFrom} — {dateTo}. Pracovníci je již nebudou moci zpětně editovat ani mazat. Tato akce je nevratná.
+                        </div>
+                        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                          <button className="btn btn-outline btn-sm" onClick={()=>setShowInvoiceConfirm(false)}>Zrušit</button>
+                          <button className="btn btn-danger btn-sm" onClick={handleGenerateInvoice}>
+                            <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a vygenerovat
+                          </button>
+                        </div>
                       </div>
-                      <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-                        Po vygenerování fakturačního podkladu se uzamknou všechny záznamy za období {dateFrom} — {dateTo}. Pracovníci je již nebudou moci zpětně editovat ani mazat. Tato akce je nevratná.
-                      </div>
-                      <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                        <button className="btn btn-outline btn-sm" onClick={()=>setShowInvoiceConfirm(false)}>Zrušit</button>
-                        <button className="btn btn-danger btn-sm" onClick={handleGenerateInvoice}>
-                          <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a vygenerovat
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{display:'flex',gap:8}}>
-                      <button className="btn btn-outline" style={{flex:1}} onClick={handleDownloadPDFOnly}>
-                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.download}</span> Stáhnout PDF
+                    ) : (
+                      <button className="btn btn-primary" style={{width:'100%',marginTop:8}} onClick={()=>setShowInvoiceConfirm(true)}>
+                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout období
                       </button>
-                      <button className="btn btn-primary" style={{flex:1}} onClick={()=>setShowInvoiceConfirm(true)} disabled={(() => {
-                        const periodKey = dateFrom + '_' + dateTo;
-                        const usersWithEntries = [...new Set(entries.filter(e => e.date >= dateFrom && e.date <= dateTo).map(e => e.user_id))];
-                        const finalizedCount = usersWithEntries.filter(uid => userFinalizations[periodKey + '_' + uid]).length;
-                        return finalizedCount < usersWithEntries.length;
-                      })()}>
-                        <span style={{width:16,height:16,display:'inline-flex'}}>{Icons.lock}</span> Uzamknout a stáhnout
-                      </button>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               )}
-            </div>
-          )}
-
           {/* Existing locks list */}
           {billingLocks.length > 0 && (
             <div style={{marginTop:20}}>
