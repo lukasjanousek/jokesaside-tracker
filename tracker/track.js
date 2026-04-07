@@ -10,6 +10,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [taskParticipants, setTaskParticipants] = useState([]);
   const [showDescSuggestions, setShowDescSuggestions] = useState(false);
   const [descInputRef, setDescInputRef] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   // Meeting form state
   const [trackMode, setTrackMode] = useState('task');
@@ -38,17 +39,26 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
     ? uniqueDescriptions.filter(d => d.toLowerCase().includes(desc.toLowerCase())).slice(0, 5)
     : [];
 
-  const handleAddManual = () => {
+  const handleAddManual = async () => {
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
     if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     const participantIds = taskParticipants.length > 0 ? taskParticipants : [currentUser.id];
-    participantIds.forEach(userId => {
-      selCompanies.forEach(compId => {
-        onAddManual(compId, desc, totalMins, date, userId);
-      });
-    });
-    setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr(''); setTaskParticipants([]);
+    setSaveStatus('saving');
+    let allOk = true;
+    for (const userId of participantIds) {
+      for (const compId of selCompanies) {
+        const ok = await onAddManual(compId, desc, totalMins, date, userId);
+        if (!ok) allOk = false;
+      }
+    }
+    if (allOk) {
+      setSaveStatus('success');
+      setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr(''); setTaskParticipants([]);
+    } else {
+      setSaveStatus('error');
+    }
+    setTimeout(() => setSaveStatus(null), 2000);
   };
 
   return (
@@ -166,9 +176,9 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
 
               <input className="input" type="date" value={date} onChange={e=>setDate(e.target.value)} style={{marginBottom:8,fontSize:13}} />
 
-              <button className="btn btn-primary" style={{width:'100%',fontSize:13}} onClick={handleAddManual}>
+              <button className="btn btn-primary" style={{width:'100%',fontSize:13,...(saveStatus === 'success' ? {background:'#16a34a',borderColor:'#16a34a',transition:'background 0.3s'} : saveStatus === 'error' ? {background:'#dc2626',borderColor:'#dc2626',transition:'background 0.3s'} : {transition:'background 0.3s'})}} onClick={handleAddManual} disabled={saveStatus === 'saving'}>{saveStatus === 'saving' ? 'Ukládám...' : saveStatus === 'success' ? '✓ Uloženo' : saveStatus === 'error' ? '✗ Chyba' : '
                 UloÅ¾it
-              </button>
+              '}</button>
             </div>
           </div>
           </div>
