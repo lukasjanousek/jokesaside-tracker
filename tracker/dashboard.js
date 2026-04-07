@@ -11,6 +11,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const [dashParticipants, setDashParticipants] = useState([]);
   const [showDashSuggestions, setShowDashSuggestions] = useState(false);
   const dashDescRef = useRef(null);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   // Meeting form state
   const [dashMode, setDashMode] = useState('task');
@@ -37,17 +38,26 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
     if (quickCompanies.length === 0 || !quickDesc) return;
     onStartTimer(quickCompanies[0], quickDesc);
   };
-  const handleManualAdd = () => {
+  const handleManualAdd = async () => {
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
-    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { alert('Minim\u00e1ln\u00ed d\u00e9lka tasku je 15 minut'); return; }
     const participantIds = dashParticipants.length > 0 ? dashParticipants : [currentUser.id];
-    participantIds.forEach(userId => {
-      quickCompanies.forEach(compId => {
-        onAddManual(compId, quickDesc, totalMins, manualDate, userId);
-      });
-    });
-    setQuickDesc(''); setManualHours(''); setManualMins(''); setDashTimeFrom(''); setDashTimeTo(''); setDashParticipants([]);
+    setSaveStatus('saving');
+    let allOk = true;
+    for (const userId of participantIds) {
+      for (const compId of quickCompanies) {
+        const ok = await onAddManual(compId, quickDesc, totalMins, manualDate, userId);
+        if (!ok) allOk = false;
+      }
+    }
+    if (allOk) {
+      setSaveStatus('success');
+      setQuickDesc(''); setManualHours(''); setManualMins(''); setDashTimeFrom(''); setDashTimeTo(''); setDashParticipants([]);
+    } else {
+      setSaveStatus('error');
+    }
+    setTimeout(() => setSaveStatus(null), 2000);
   };
 
   return (
@@ -168,7 +178,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 </div>
                 <div style={{display:'flex',gap:6,alignItems:'center'}}>
                   <input className="input" type="date" value={manualDate} onChange={e=>setManualDate(e.target.value)} style={{flex:1,fontSize:12}} />
-                  <button className="btn btn-primary btn-sm" onClick={handleManualAdd}>UloÅ¾it</button>
+                  <button className="btn btn-primary btn-sm" onClick={handleManualAdd} disabled={saveStatus === 'saving'} style={saveStatus === 'success' ? {background:'#16a34a',borderColor:'#16a34a',transition:'background 0.3s'} : saveStatus === 'error' ? {background:'#dc2626',borderColor:'#dc2626',transition:'background 0.3s'} : {transition:'background 0.3s'}}>{saveStatus === 'saving' ? 'Ukládám...' : saveStatus === 'success' ? '✓ Uloženo' : saveStatus === 'error' ? '✗ Chyba' : 'UloÅ¾it'}</button>
                 </div>
               </div>
             </div>
