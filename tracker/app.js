@@ -546,7 +546,7 @@ function App() {
               </div>
             )}
           </div>
-          <button onClick={async () => { if(supabase) { await supabase.auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); } }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>OdhlÃ¡sit</button>
+          <button onClick={async () => { if(supabase) { try { await supabase.auth.signOut({ scope: 'global' }); } catch(e) { console.error('SignOut error:', e); } } setIsLoggedIn(false); setCurrentUser(null); }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>OdhlÃ¡sit</button>
           <span style={{fontSize: 13, color: 'var(--text-secondary)'}}>{currentUser?.name?.split(' ')[0]}</span>
           <div className="avatar">{currentUser?.name?.charAt(0) || '?'}</div>
         </div>
