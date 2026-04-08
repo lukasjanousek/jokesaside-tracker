@@ -57,6 +57,8 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
       setDesc(''); setHours(''); setMins(''); setTimeFromStr(''); setTimeToStr(''); setTaskParticipants([]);
     } else {
       setSaveStatus('error');
+      const errDetail = (window.__lastSaveError && window.__lastSaveError.message) || "Neznámá chyba";
+      alert("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
     }
     setTimeout(() => setSaveStatus(null), 2000);
   };
