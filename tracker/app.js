@@ -349,19 +349,26 @@ function App() {
   }, [companies, entries, users, retainers, getSchemeForCompany]);
 
   const addEntry = async (entry) => {
-    if (!supabase) return false;
+    if (!supabase) return { ok: false, error: 'No supabase client' };
     try {
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: save took too long')), 10000));
-      const { data, error } = await Promise.race([
+      const result = await Promise.race([
         supabase.from('time_entries').insert([entry]).select(),
         timeoutPromise
       ]);
+      const { data, error } = result || {};
       if (error) throw error;
-      if (data) setEntries(prev => [...prev, data[0]]);
-      return true;
+      if (data && data.length > 0) {
+        setEntries(prev => [...prev, data[0]]);
+      } else {
+        console.warn('[addEntry] insert returned no data (possibly RLS SELECT block) - entry:', entry);
+      }
+      return { ok: true };
     } catch (err) {
-      console.error('Error adding entry:', err);
-      return false;
+      const errMsg = err && (err.message || err.hint || err.details || JSON.stringify(err)) || 'Unknown error';
+      console.error('[addEntry] Error:', errMsg, 'Full error:', err, 'Entry:', entry);
+      window.__lastSaveError = { message: errMsg, error: err, entry, timestamp: new Date().toISOString() };
+      return { ok: false, error: errMsg };
     }
   };
 
@@ -571,7 +578,7 @@ function App() {
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
             onAddManual={async (compId, desc, mins, date, userId) => {
-              return addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+              const __r = await addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true }); return __r.ok ? true : (console.error("[onAddManual] fail:", __r.error), false)
             }}
             currentUser={currentUser}
             recurringMeetings={recurringMeetings}
@@ -607,7 +614,7 @@ function App() {
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
             }}
             onAddManual={async (compId, desc, mins, date, userId) => {
-              return addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true });
+              const __r = await addEntry({ user_id: userId || currentUser.id, company_id: compId, description: desc, duration_min: mins, date, is_manual: true }); return __r.ok ? true : (console.error("[onAddManual] fail:", __r.error), false)
             }}
             onDeleteEntry={deleteEntry}
             onUpdateEntry={updateEntry}
