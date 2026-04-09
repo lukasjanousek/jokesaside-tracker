@@ -299,22 +299,16 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                 const sb = window.__supabase;
                 if (!sb) { alert('Supabase nenÃ­ pÅipojeno'); return; }
                 try {
-                  const retData = {
-                    company_id: editRetainer.company_id,
-                    month: editRetainer.month,
-                    payment_czk: editRetainer.payment_czk,
-                    rollover_czk: editRetainer.rollover_czk,
-                    valid_from: editRetainer.valid_from || editRetainer.month
-                  };
-                  if (editRetainer.existing_id) {
-                    const { error } = await sb.from('retainers').update(retData).eq('id', editRetainer.existing_id);
-                    if (error) { console.error('Retainer update error:', error); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + error.message); return; }
-                    setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? {...r, ...retData, id: editRetainer.existing_id} : r));
-                  } else {
-                    const { data: inserted, error } = await sb.from('retainers').insert([retData]).select();
-                    if (error) { console.error('Retainer insert error:', error); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + error.message); return; }
-                    if (inserted && inserted[0]) setRetainers(prev => [...prev, inserted[0]]);
-                  }
+                  const retData = { company_id: editRetainer.company_id, month: editRetainer.month, payment_czk: parseInt(editRetainer.payment_czk, 10) || 0, rollover_czk: parseFloat(editRetainer.rollover_czk) || 0 };
+                  const retDataWithValidFrom = { ...retData, valid_from: editRetainer.valid_from || editRetainer.month };
+                  const isUpdate = !!editRetainer.existing_id;
+                  const doSave = async (d) => isUpdate ? await sb.from('retainers').update(d).eq('id', editRetainer.existing_id).select() : await sb.from('retainers').insert([d]).select();
+                  let res = await doSave(retDataWithValidFrom);
+                  if (res.error && /valid_from/i.test(res.error.message || '')) { console.warn('Retainer save: valid_from column missing, retrying without it'); res = await doSave(retData); }
+                  if (res.error) { console.error('Retainer save error:', res.error); alert('Chyba při ukládání: ' + res.error.message); return; }
+                  if (!res.data || res.data.length === 0) { alert('Uložení se nezdařilo: nic se v DB nezměnilo. Buď nemáte oprávnění, nebo záznam neexistuje. Kontaktuj vývojáe.'); return; }
+                  const savedRow = res.data[0];
+                  if (isUpdate) { setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? savedRow : r)); } else { setRetainers(prev => [...prev, savedRow]); }
                   setEditRetainer(null);
                 } catch(err) { console.error('Retainer save error:', err); alert('Chyba: ' + err.message); }
               }}>UloÅ¾it</button>
