@@ -92,7 +92,20 @@ function App() {
       const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes, deletedRecurringRes] = await Promise.all([
         supabase.from('companies').select('*').eq('is_active', true),
         supabase.from('profiles').select('*'),
-        supabase.from('time_entries').select('*').order('created_at', { ascending: false }),
+        (async () => {
+          const chunkSize = 1000;
+          let allData = [];
+          let offset = 0;
+          while (true) {
+            const r = await supabase.from('time_entries').select('*').order('created_at', { ascending: false }).range(offset, offset + chunkSize - 1);
+            if (r.error) return { data: null, error: r.error };
+            if (!r.data || r.data.length === 0) break;
+            allData = allData.concat(r.data);
+            if (r.data.length < chunkSize) break;
+            offset += chunkSize;
+          }
+          return { data: allData, error: null };
+        })(),
         supabase.from('discount_schemes').select('*'),
         supabase.from('discount_scheme_companies').select('*'),
         supabase.from('discount_tiers').select('*'),
