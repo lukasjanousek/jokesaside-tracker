@@ -165,6 +165,7 @@ function App() {
       console.error('Error loading data:', err);
     } finally {
       setLoading(false);
+      window.__initialLoadComplete = true;
     }
   };
 
@@ -226,6 +227,7 @@ function App() {
   useEffect(() => {
     if (!supabase || recurringMeetings.length === 0) return;
     if (window.__generatingRecurring) return;
+    if (!window.__initialLoadComplete) return;
     const currentEntries = window.__latestEntries || [];
 
     const today = new Date().toISOString().slice(0, 10);
@@ -364,7 +366,7 @@ function App() {
   const addEntry = async (entry) => {
     if (!supabase) return { ok: false, error: 'No supabase client' };
     try {
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: save took too long')), 10000));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: save took too long')), 30000));
       const result = await Promise.race([
         supabase.from('time_entries').insert([entry]).select(),
         timeoutPromise
