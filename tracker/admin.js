@@ -31,7 +31,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   
     } catch (err) {
       console.error('handleSaveUser error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -43,13 +43,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     const sb = window.__supabase;
     if (!sb) return;
     if (!company.name || !company.ico) {
-      alert('VyplÅte prosÃ­m: ' + (!company.name ? 'NÃ¡zev' : '') + (!company.name && !company.ico ? ', ' : '') + (!company.ico ? 'IÄ' : ''));
+      toastInfo('VyplÅte prosÃ­m: ' + (!company.name ? 'NÃ¡zev' : '') + (!company.name && !company.ico ? ', ' : '') + (!company.ico ? 'IÄ' : ''));
       return;
     }
     // Check for duplicate IÄ
     const duplicate = companies.find(c => c.ico === company.ico && c.id !== company.id);
     if (duplicate) {
-      alert('Firma s IÄ ' + company.ico + ' jiÅ¾ existuje: ' + duplicate.name);
+      toastInfo('Firma s IÄ ' + company.ico + ' jiÅ¾ existuje: ' + duplicate.name);
       return;
     }
     const compData = {
@@ -70,7 +70,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   
     } catch (err) {
       console.error('handleSaveCompany error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -114,7 +114,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   
     } catch (err) {
       console.error('handleSaveScheme error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -130,7 +130,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   
     } catch (err) {
       console.error('handleDeleteScheme error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -261,7 +261,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                           if (error) throw error;
                         }
                         setCompanies(companies.filter(co => co.id !== c.id));
-                      } catch(err) { alert('Chyba pÅi mazÃ¡nÃ­: ' + err.message); }
+                      } catch(err) { toastError('Chyba pÅi mazÃ¡nÃ­: ' + err.message); }
                     }}>
                       <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.trash}</span>
                     </button>}
@@ -334,7 +334,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
               <button className="btn btn-outline" onClick={()=>setEditRetainer(null)}>ZruÅ¡it</button>
               <button className="btn btn-primary" onClick={async () => {
                 const sb = window.__supabase;
-                if (!sb) { alert('Supabase nenÃ­ pÅipojeno'); return; }
+                if (!sb) { toastInfo('Supabase nenÃ­ pÅipojeno'); return; }
                 try {
                   const retData = { company_id: editRetainer.company_id, month: editRetainer.month, payment_czk: parseInt(editRetainer.payment_czk, 10) || 0, rollover_czk: parseFloat(editRetainer.rollover_czk) || 0 };
                   const retDataWithValidFrom = { ...retData, valid_from: editRetainer.valid_from || editRetainer.month };
@@ -342,12 +342,12 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                   const doSave = async (d) => isUpdate ? await sb.from('retainers').update(d).eq('id', editRetainer.existing_id).select() : await sb.from('retainers').insert([d]).select();
                   let res = await doSave(retDataWithValidFrom);
                   if (res.error && /valid_from/i.test(res.error.message || '')) { console.warn('Retainer save: valid_from column missing, retrying without it'); res = await doSave(retData); }
-                  if (res.error) { console.error('Retainer save error:', res.error); alert('Chyba při ukládání: ' + res.error.message); return; }
-                  if (!res.data || res.data.length === 0) { alert('Uložení se nezdařilo: nic se v DB nezměnilo. Buď nemáte oprávnění, nebo záznam neexistuje. Kontaktuj vývojáe.'); return; }
+                  if (res.error) { console.error('Retainer save error:', res.error); toastError('Chyba při ukládání: ' + res.error.message); return; }
+                  if (!res.data || res.data.length === 0) { toastInfo('Uložení se nezdařilo: nic se v DB nezměnilo. Buď nemáte oprávnění, nebo záznam neexistuje. Kontaktuj vývojáe.'); return; }
                   const savedRow = res.data[0];
                   if (isUpdate) { setRetainers(prev => prev.map(r => r.id === editRetainer.existing_id ? savedRow : r)); } else { setRetainers(prev => [...prev, savedRow]); }
                   setEditRetainer(null);
-                } catch(err) { console.error('Retainer save error:', err); alert('Chyba: ' + err.message); }
+                } catch(err) { console.error('Retainer save error:', err); toastError('Chyba: ' + err.message); }
               }}>UloÅ¾it</button>
             </div>
           </div>
