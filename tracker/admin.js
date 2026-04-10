@@ -8,8 +8,11 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   const [editRetainer, setEditRetainer] = useState(null);
 
   const isAdmin = currentUser?.is_admin === true;
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveUser = async (userData) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (window.__supabase && userData.id) {
       const updateData = {
@@ -29,9 +32,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     } catch (err) {
       console.error('handleSaveUser error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   const handleSaveCompany = async (company) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     const sb = window.__supabase;
     if (!sb) return;
@@ -64,9 +71,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     } catch (err) {
       console.error('handleSaveCompany error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   const handleSaveScheme = async (scheme) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (!window.__supabase) return;
     const sb = window.__supabase;
@@ -104,9 +115,13 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     } catch (err) {
       console.error('handleSaveScheme error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   const handleDeleteScheme = async (schemeId) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (window.__supabase) {
       await window.__supabase.from('discount_schemes').delete().eq('id', schemeId);
@@ -116,6 +131,8 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     } catch (err) {
       console.error('handleDeleteScheme error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   return (
