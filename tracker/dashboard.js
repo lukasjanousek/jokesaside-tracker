@@ -41,7 +41,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const handleManualAdd = async () => {
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
-    if (totalMins < 15) { alert('Minim\u00e1ln\u00ed d\u00e9lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { toastSuccess('Minim\u00e1ln\u00ed d\u00e9lka tasku je 15 minut'); return; }
     const participantIds = dashParticipants.length > 0 ? dashParticipants : [currentUser.id];
     setSaveStatus('saving');
     let allOk = true;
@@ -57,7 +57,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
     } else {
       setSaveStatus('error');
       const errDetail = (window.__lastSaveError && window.__lastSaveError.message) || "Neznámá chyba";
-      alert("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
+      toastError("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
     }
     setTimeout(() => setSaveStatus(null), 2000);
   };
@@ -287,7 +287,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 if (meetingCompanies.length === 0) missing.push('Firmy');
                 if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
                 if (missing.length > 0) {
-                  alert('VyplÅte prosÃ­m: ' + missing.join(', '));
+                  toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', '));
                   return;
                 }
                 const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
@@ -313,7 +313,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                       const { data, error } = await sb.from('recurring_meetings').insert([meetingData]).select();
                       console.log('[Meeting Save] Result:', JSON.stringify({data, error}));
                       if (error) throw error;
-                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); alert('Task uloÅ¾en!');
+                      if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); toastSuccess('Task uloÅ¾en!');
                         // Create in-app notifications for participants
                         const compNames = meetingCompanies.map(cid => companies.find(c => c.id === cid)?.name).filter(Boolean).join(', ');
                         createNotifications(allParticipants, md.id, 'recurring_meeting', 'PozvÃ¡nka: ' + meetingDesc, 'Byli jste pÅidÃ¡ni k opakovanÃ©mu tasku pro ' + compNames + '. PotvrÄte prosÃ­m svoji ÃºÄast.');
@@ -322,7 +322,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                       const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                       setRecurringMeetings([...recurringMeetings, newMeeting]);
                     }
-                  } catch(err) { console.error('[Meeting Save] Error:', err); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
+                  } catch(err) { console.error('[Meeting Save] Error:', err); toastError('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
                 })();
 
                 // Send email notification
