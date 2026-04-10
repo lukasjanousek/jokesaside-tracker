@@ -42,7 +42,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const handleAddManual = async () => {
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
-    if (totalMins < 15) { toastSuccess('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { toastError('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     const participantIds = taskParticipants.length > 0 ? taskParticipants : [currentUser.id];
     setSaveStatus('saving');
     let allOk = true;
@@ -285,7 +285,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               if (meetingCompanies.length === 0) missing.push('Firmy');
               if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
               if (missing.length > 0) {
-                toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', '));
+                toastError('VyplÅte prosÃ­m: ' + missing.join(', '));
                 return;
               }
               const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
