@@ -10,6 +10,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
   const isAdmin = currentUser?.is_admin === true;
 
   const handleSaveUser = async (userData) => {
+    try {
     if (window.__supabase && userData.id) {
       const updateData = {
         name: userData.name, email: userData.email, position: userData.position,
@@ -24,9 +25,14 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       // Update currentUser if editing self
     }
     setEditUser(null);
-  };
+  
+    } catch (err) {
+      console.error('handleSaveUser error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   const handleSaveCompany = async (company) => {
+    try {
     const sb = window.__supabase;
     if (!sb) return;
     if (!company.name || !company.ico) {
@@ -54,9 +60,14 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       }
     }
     setEditCompany(null);
-  };
+  
+    } catch (err) {
+      console.error('handleSaveCompany error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   const handleSaveScheme = async (scheme) => {
+    try {
     if (!window.__supabase) return;
     const sb = window.__supabase;
 
@@ -89,14 +100,23 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       }
     }
     setEditingScheme(null);
-  };
+  
+    } catch (err) {
+      console.error('handleSaveScheme error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   const handleDeleteScheme = async (schemeId) => {
+    try {
     if (window.__supabase) {
       await window.__supabase.from('discount_schemes').delete().eq('id', schemeId);
     }
     setDiscountSchemes(prev => prev.filter(s => s.id !== schemeId));
-  };
+  
+    } catch (err) {
+      console.error('handleDeleteScheme error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   return (
     <div>
