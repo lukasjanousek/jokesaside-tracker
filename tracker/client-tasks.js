@@ -10,6 +10,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   const [completeDesc, setCompleteDesc] = useState('');
   const [assignDialog, setAssignDialog] = useState(null);
   const [expandedTask, setExpandedTask] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const DIVISIONS = ['Finance', 'Legal', 'Operations/HR', 'Marketing'];
   const PRIORITIES = { low: { label: 'NÃ­zkÃ¡', color: '#9ca3af' }, medium: { label: 'StÅednÃ­', color: '#f59e0b' }, high: { label: 'VysokÃ¡', color: '#ef4444' } };
@@ -56,6 +57,8 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
 
   // Change status
   const changeStatus = async (task, newStatus) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (newStatus === 'hotovo') {
       setCompleteDialog(task);
@@ -74,10 +77,14 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     } catch (err) {
       console.error('changeStatus error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   // Complete task and create time entry
   const handleComplete = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (!completeDialog) return;
     const totalMins = (parseInt(completeDuration.hours) || 0) * 60 + (parseInt(completeDuration.mins) || 0);
@@ -126,10 +133,14 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     } catch (err) {
       console.error('handleComplete error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   // Assign user
   const handleAssign = async (taskId, userId) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     const sb = window.__supabase;
     if (!sb) return;
@@ -148,10 +159,14 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     } catch (err) {
       console.error('handleAssign error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   // Delete task
   const handleDelete = async (task) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
     if (!confirm('Opravdu chcete smazat Ãºkol "' + task.title + '"?')) return;
     const sb = window.__supabase;
@@ -164,6 +179,8 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     } catch (err) {
       console.error('handleDelete error:', err);
       alert('Chyba: ' + (err && err.message || String(err)));
+    } finally {
+      setIsSaving(false);
     }};
 
   // Get users for assignment (current user + their direct reports)
