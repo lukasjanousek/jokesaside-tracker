@@ -154,7 +154,6 @@ function App() {
         }));
         setDiscountSchemes(schemes);
       }
-      console.log('[Meetings] raw response:', JSON.stringify(meetingsRes));
       if (meetingsRes.error) console.error('[Meetings] DB error:', meetingsRes.error);
       if (meetingsRes.data && meetingsRes.data.length > 0) {
         const normalized = meetingsRes.data.map(m => ({
@@ -170,10 +169,8 @@ function App() {
           endDate: m.end_date || m.endDate,
           isActive: m.is_active ?? m.isActive ?? true,
         }));
-        console.log('[Meetings] normalized:', JSON.stringify(normalized));
         setRecurringMeetings(normalized);
       } else if (meetingsRes.data) {
-        console.log('[Meetings] empty array from DB');
         setRecurringMeetings([]);
       }
       if (locksRes.data) setBillingLocks(locksRes.data);
@@ -183,7 +180,7 @@ function App() {
       if (clientProfilesRes && clientProfilesRes.data) setClientProfiles(clientProfilesRes.data);
       if (deletedRecurringRes && deletedRecurringRes.data) setDeletedRecurringEntries(deletedRecurringRes.data);
       // Load notifications for current user
-      const { data: notifData } = await supabase.from('task_notifications').select('*').order('created_at', { ascending: false });
+      const { data: notifData } = await window.supabaseRetry(() => supabase.from('task_notifications').select('*').order('created_at', { ascending: false }));
       if (notifData) setNotifications(notifData);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -231,7 +228,9 @@ function App() {
         password,
       });
       if (signInError) throw signInError;
-      if (authData.user) {
+      // onAuthStateChange listener handles loadUserProfile automatically
+      // Only call directly if no session event fires within 3s
+      if (authData.user && !loadingProfileRef.current) {
         await loadUserProfile(authData.user.id);
       }
     } catch (err) {
@@ -333,7 +332,6 @@ function App() {
 
     if (toInsert.length === 0) return;
 
-    console.log('[Meetings] Batch inserting', toInsert.length, 'recurring entries');
     window.__generatingRecurring = true;
 
     (async () => {
@@ -617,7 +615,7 @@ function App() {
               </div>
             )}
           </div>
-          <button onClick={async () => { if(supabase) { try { await supabase.auth.signOut({ scope: 'global' }); } catch(e) { console.error('SignOut error:', e); } } setIsLoggedIn(false); setCurrentUser(null); }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>OdhlÃ¡sit</button>
+          <button onClick={async () => { try { if(supabase) { await Promise.race([supabase.auth.signOut({ scope: 'local' }), new Promise(r => setTimeout(r, 3000))]); } } catch(e) { console.error('SignOut error:', e); } setIsLoggedIn(false); setCurrentUser(null); setLoading(false); setAuthError(''); setPendingApproval(false); setPage('dashboard'); }} style={{fontSize:12,color:'var(--text-secondary)',marginRight:8,cursor:'pointer',background:'none',border:'none'}}>OdhlÃ¡sit</button>
           <span style={{fontSize: 13, color: 'var(--text-secondary)'}}>{currentUser?.name?.split(' ')[0]}</span>
           <div className="avatar">{currentUser?.name?.charAt(0) || '?'}</div>
         </div>
@@ -669,7 +667,7 @@ function App() {
             onStartTimer={(compId, desc) => { setTimerRunning(true); setTimerStart(Date.now()); setTimerCompany(compId); setTimerDesc(desc); setTimerElapsed(0); }}
             onStopTimer={() => {
               if (timerCompany && timerDesc) {
-                const mins = Math.max(1, Math.round(timerElapsed / 60000));
+                const mins = Math.max(15, Math.round(timerElapsed / 60000));
                 addEntry({ user_id: currentUser.id, company_id: timerCompany, description: timerDesc, duration_min: mins, date: new Date().toISOString().slice(0,10), is_manual: false });
               }
               setTimerRunning(false); setTimerStart(null); setTimerCompany(null); setTimerDesc(''); setTimerElapsed(0);
