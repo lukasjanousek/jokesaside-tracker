@@ -90,14 +90,14 @@ function App() {
     try {
       setLoading(true);
       const [companiesRes, usersRes, entriesRes, schemesRes, schemeCompaniesRes, schemeTiersRes, meetingsRes, locksRes, retainersRes, approvalRes, clientTasksRes, clientProfilesRes, deletedRecurringRes] = await Promise.all([
-        supabase.from('companies').select('*').eq('is_active', true),
-        supabase.from('profiles').select('*'),
+        window.supabaseRetry(() => supabase.from('companies').select('*').eq('is_active', true)),
+        window.supabaseRetry(() => supabase.from('profiles').select('*')),
         (async () => {
           const chunkSize = 1000;
           let allData = [];
           let offset = 0;
           while (true) {
-            const r = await supabase.from('time_entries').select('*').order('created_at', { ascending: false }).range(offset, offset + chunkSize - 1);
+            const r = await window.supabaseRetry(() => supabase.from('time_entries').select('*').order('created_at', { ascending: false }).range(offset, offset + chunkSize - 1));
             if (r.error) return { data: null, error: r.error };
             if (!r.data || r.data.length === 0) break;
             allData = allData.concat(r.data);
@@ -106,16 +106,16 @@ function App() {
           }
           return { data: allData, error: null };
         })(),
-        supabase.from('discount_schemes').select('*'),
-        supabase.from('discount_scheme_companies').select('*'),
-        supabase.from('discount_tiers').select('*'),
-        supabase.from('recurring_meetings').select('*'),
-        supabase.from('billing_locks').select('*'),
-        supabase.from('retainers').select('*'),
-        supabase.from('approval_requests').select('*'),
-        supabase.from('client_tasks').select('*').eq('is_deleted', false).order('created_at', { ascending: false }),
-        supabase.from('client_profiles').select('*'),
-        supabase.from('deleted_recurring_entries').select('*'),
+        window.supabaseRetry(() => supabase.from('discount_schemes').select('*')),
+        window.supabaseRetry(() => supabase.from('discount_scheme_companies').select('*')),
+        window.supabaseRetry(() => supabase.from('discount_tiers').select('*')),
+        window.supabaseRetry(() => supabase.from('recurring_meetings').select('*')),
+        window.supabaseRetry(() => supabase.from('billing_locks').select('*')),
+        window.supabaseRetry(() => supabase.from('retainers').select('*')),
+        window.supabaseRetry(() => supabase.from('approval_requests').select('*')),
+        window.supabaseRetry(() => supabase.from('client_tasks').select('*').eq('is_deleted', false).order('created_at', { ascending: false })),
+        window.supabaseRetry(() => supabase.from('client_profiles').select('*')),
+        window.supabaseRetry(() => supabase.from('deleted_recurring_entries').select('*')),
       ]);
 
       if (companiesRes.data) setCompanies(companiesRes.data);
