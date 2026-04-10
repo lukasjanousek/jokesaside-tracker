@@ -366,21 +366,35 @@ function App() {
   const addEntry = async (entry) => {
     if (!supabase) return { ok: false, error: 'No supabase client' };
     try {
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: save took too long')), 30000));
-      const result = await Promise.race([
-        supabase.from('time_entries').insert([entry]).select(),
-        timeoutPromise
-      ]);
-      const { data, error } = result || {};
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return { ok: false, error: 'Not authenticated - please reload' };
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 30000);
+      const resp = await fetch(SUPABASE_URL + '/rest/v1/time_entries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + session.access_token,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(entry),
+        signal: controller.signal
+      });
+      clearTimeout(tid);
+      if (!resp.ok) {
+        const errBody = await resp.json().catch(() => ({}));
+        throw new Error(errBody.message || resp.statusText || 'HTTP ' + resp.status);
+      }
+      const data = await resp.json();
       if (data && data.length > 0) {
         setEntries(prev => [...prev, data[0]]);
       } else {
-        console.warn('[addEntry] insert returned no data (possibly RLS SELECT block) - entry:', entry);
+        console.warn('[addEntry] Insert OK but no data returned');
       }
-      return { ok: true };
-    } catch (err) {
-      const errMsg = err && (err.message || err.hint || err.details || JSON.stringify(err)) || 'Unknown error';
+      return { ok: true, data };
+    } catch(err) {
+      const errMsg = err.name === 'AbortError' ? 'Timeout: save took too long' : (err && (err.message || String(err))) || 'Unknown error';
       console.error('[addEntry] Error:', errMsg, 'Full error:', err, 'Entry:', entry);
       window.__lastSaveError = { message: errMsg, error: err, entry, timestamp: new Date().toISOString() };
       return { ok: false, error: errMsg };
