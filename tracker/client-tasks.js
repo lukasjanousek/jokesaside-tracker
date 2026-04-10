@@ -56,6 +56,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
 
   // Change status
   const changeStatus = async (task, newStatus) => {
+    try {
     if (newStatus === 'hotovo') {
       setCompleteDialog(task);
       setCompleteDesc(task.title);
@@ -64,15 +65,20 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     }
     const sb = window.__supabase;
     if (!sb) return;
-    const { error } = await sb.from('client_tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', task.id);
+    const { error } = await sb.from('client_tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', task.id).select();
     if (error) { alert('Chyba: ' + error.message); return; }
     // Log
     await sb.from('client_task_logs').insert([{ task_id: task.id, user_type: 'admin', user_id: currentUser.id, action: 'status_changed', old_values: { status: task.status }, new_values: { status: newStatus } }]);
     setClientTasks(clientTasks.map(t => t.id === task.id ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t));
-  };
+  
+    } catch (err) {
+      console.error('changeStatus error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   // Complete task and create time entry
   const handleComplete = async () => {
+    try {
     if (!completeDialog) return;
     const totalMins = (parseInt(completeDuration.hours) || 0) * 60 + (parseInt(completeDuration.mins) || 0);
     if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
@@ -102,7 +108,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       completed_duration_min: totalMins,
       time_entry_id: entryData?.[0]?.id || null,
       updated_at: new Date().toISOString(),
-    }).eq('id', completeDialog.id);
+    }).eq('id', completeDialog.id).select();
 
     if (taskError) { alert('Chyba: ' + taskError.message); return; }
 
@@ -116,13 +122,18 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     setClientTasks(clientTasks.map(t => t.id === completeDialog.id ? { ...t, status: 'hotovo', completed_at: new Date().toISOString(), completed_duration_min: totalMins, time_entry_id: entryData?.[0]?.id } : t));
     if (entryData) setEntries([entryData[0], ...entries]);
     setCompleteDialog(null);
-  };
+  
+    } catch (err) {
+      console.error('handleComplete error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   // Assign user
   const handleAssign = async (taskId, userId) => {
+    try {
     const sb = window.__supabase;
     if (!sb) return;
-    const { error } = await sb.from('client_tasks').update({ assigned_user_id: userId, assigned_by: currentUser.id, updated_at: new Date().toISOString() }).eq('id', taskId);
+    const { error } = await sb.from('client_tasks').update({ assigned_user_id: userId, assigned_by: currentUser.id, updated_at: new Date().toISOString() }).eq('id', taskId).select();
     if (error) { alert('Chyba: ' + error.message); return; }
     await sb.from('client_task_logs').insert([{ task_id: taskId, user_type: 'admin', user_id: currentUser.id, action: 'assigned', new_values: { assigned_user_id: userId } }]);
     setClientTasks(clientTasks.map(t => t.id === taskId ? { ...t, assigned_user_id: userId, assigned_by: currentUser.id } : t));
@@ -133,18 +144,27 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       createNotifications([userId], taskId, 'client_task', 'NovÃ½ Ãºkol: ' + task.title, 'Byl vÃ¡m pÅiÅazen Ãºkol pro ' + compName + '. PotvrÄte prosÃ­m pÅijetÃ­.');
     }
     setAssignDialog(null);
-  };
+  
+    } catch (err) {
+      console.error('handleAssign error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   // Delete task
   const handleDelete = async (task) => {
+    try {
     if (!confirm('Opravdu chcete smazat Ãºkol "' + task.title + '"?')) return;
     const sb = window.__supabase;
     if (!sb) return;
-    const { error } = await sb.from('client_tasks').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'admin', deleted_by: currentUser.id }).eq('id', task.id);
+    const { error } = await sb.from('client_tasks').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'admin', deleted_by: currentUser.id }).eq('id', task.id).select();
     if (error) { alert('Chyba: ' + error.message); return; }
     await sb.from('client_task_logs').insert([{ task_id: task.id, user_type: 'admin', user_id: currentUser.id, action: 'deleted', old_values: task }]);
     setClientTasks(clientTasks.filter(t => t.id !== task.id));
-  };
+  
+    } catch (err) {
+      console.error('handleDelete error:', err);
+      alert('Chyba: ' + (err && err.message || String(err)));
+    }};
 
   // Get users for assignment (current user + their direct reports)
   const assignableUsers = users.filter(u => u.is_active && (u.id === currentUser?.id || u.manager_id === currentUser?.id || currentUser?.is_admin));
