@@ -474,7 +474,7 @@ function App() {
     if (!supabase) return;
     const newStatus = accept ? 'accepted' : 'declined';
     const { data: notifData, error } = await supabase.from('task_notifications').update({ status: newStatus, responded_at: new Date().toISOString() }).eq('id', notif.id).select();
-    if (error) { alert('Chyba: ' + error.message); return; }
+    if (error) { toastError('Chyba: ' + error.message); return; }
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, status: newStatus, responded_at: new Date().toISOString() } : n));
 
     // If accepted, add user to confirmed_participant_ids
