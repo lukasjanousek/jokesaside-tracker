@@ -160,7 +160,7 @@ function EditableTaskItem({ entry, companies, users, currentUser, onUpdate, onDe
 
   const handleSave = () => {
     const totalMins = (parseInt(editHours)||0)*60 + (parseInt(editMins)||0);
-    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { toastInfo('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     if (!editDesc.trim()) return;
     onUpdate(entry.id, {
       description: editDesc.trim(),
