@@ -21,7 +21,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         manager_id: userData.manager_id || null
       };
       if (isAdmin) updateData.is_admin = userData.is_admin;
-      await window.__supabase.from('profiles').update(updateData).eq('id', userData.id).select();
+      await window.supabaseRetry(() => window.__supabase.from('profiles').update(updateData).eq('id', userData.id).select());
     }
     setUsers(prev => prev.map(u => u.id === userData.id ? {...u, ...userData} : u));
     if (userData.id === currentUser?.id) {
@@ -124,7 +124,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     setIsSaving(true);
     try {
     if (window.__supabase) {
-      await window.__supabase.from('discount_schemes').delete().eq('id', schemeId);
+      await window.supabaseRetry(() => window.__supabase.from('discount_schemes').delete().eq('id', schemeId));
     }
     setDiscountSchemes(prev => prev.filter(s => s.id !== schemeId));
   
