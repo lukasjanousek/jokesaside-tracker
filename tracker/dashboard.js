@@ -308,10 +308,8 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 (async () => {
                   try {
                     const sb = window.__supabase;
-                    console.log('[Meeting Save] Data to insert:', JSON.stringify(meetingData));
                     if (sb) {
                       const { data, error } = await sb.from('recurring_meetings').insert([meetingData]).select();
-                      console.log('[Meeting Save] Result:', JSON.stringify({data, error}));
                       if (error) throw error;
                       if (data && data[0]) { const md = data[0]; setRecurringMeetings([...recurringMeetings, {...md, companyIds: md.company_ids||md.companyIds||[], participantIds: md.participant_ids||md.participantIds||[], confirmedParticipantIds: md.confirmed_participant_ids||md.confirmedParticipantIds||[], authorId: md.author_id||md.authorId, dayOfWeek: md.day_of_week??md.dayOfWeek??0, dayOfMonth: md.day_of_month??md.dayOfMonth??1, durationMin: md.duration_min||md.durationMin||60, startDate: md.start_date||md.startDate, endDate: md.end_date||md.endDate, isActive: md.is_active??md.isActive??true}]); toastSuccess('Task uloÅ¾en!');
                         // Create in-app notifications for participants
