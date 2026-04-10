@@ -76,8 +76,8 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
 
   const deleteMeeting = async (id) => {
     if (isSaving) return;
-    setIsSaving(true);
     if (!confirm('Opravdu chcete smazat tento meeting? JiÅ¾ vygenerovanÃ© zÃ¡znamy zÅ¯stanou.')) return;
+    setIsSaving(true);
     try {
       const sb = window.__supabase;
       if (sb) {
@@ -114,12 +114,11 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
 
   const createMeeting = async () => {
     if (isSaving) return;
-    setIsSaving(true);
     const missing = [];
     if (!newDesc) missing.push('Popis');
     if (newCompanies.length === 0) missing.push('Firmy');
     if (!newStartDate) missing.push('Datum zaÄÃ¡tku');
-    if (missing.length > 0) { toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', ')); return; }
+    if (missing.length > 0) { toastError('VyplÅte prosÃ­m: ' + missing.join(', ')); return; }
     const allParts = [currentUser.id, ...newParticipants.filter(id => id !== currentUser.id)];
     const meetingData = {
       description: newDesc,
@@ -135,6 +134,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       end_date: newIndefinite ? null : newEndDate,
       is_active: true,
     };
+    setIsSaving(true);
     try {
       const sb = window.__supabase;
       if (sb) {
