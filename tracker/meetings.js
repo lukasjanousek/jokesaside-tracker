@@ -68,7 +68,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       } : m));
       setEditingId(null);
     } catch (err) {
-      alert('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + err.message);
+      toastError('Chyba pÅi uklÃ¡dÃ¡nÃ­: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -86,7 +86,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       }
       setRecurringMeetings(recurringMeetings.filter(m => m.id !== id));
     } catch (err) {
-      alert('Chyba pÅi mazÃ¡nÃ­: ' + err.message);
+      toastError('Chyba pÅi mazÃ¡nÃ­: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -99,7 +99,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       const sb = window.__supabase;
       if (sb) await sb.from('recurring_meetings').update({ is_active: false }).eq('id', id).select();
       setRecurringMeetings(recurringMeetings.map(m => m.id === id ? { ...m, isActive: false } : m));
-    } catch (err) { alert('Chyba: ' + err.message); } finally { setIsSaving(false); }
+    } catch (err) { toastError('Chyba: ' + err.message); } finally { setIsSaving(false); }
   };
 
   const reactivateMeeting = async (id) => {
@@ -109,7 +109,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       const sb = window.__supabase;
       if (sb) await sb.from('recurring_meetings').update({ is_active: true }).eq('id', id).select();
       setRecurringMeetings(recurringMeetings.map(m => m.id === id ? { ...m, isActive: true } : m));
-    } catch (err) { alert('Chyba: ' + err.message); } finally { setIsSaving(false); }
+    } catch (err) { toastError('Chyba: ' + err.message); } finally { setIsSaving(false); }
   };
 
   const createMeeting = async () => {
@@ -119,7 +119,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
     if (!newDesc) missing.push('Popis');
     if (newCompanies.length === 0) missing.push('Firmy');
     if (!newStartDate) missing.push('Datum zaÄÃ¡tku');
-    if (missing.length > 0) { alert('VyplÅte prosÃ­m: ' + missing.join(', ')); return; }
+    if (missing.length > 0) { toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', ')); return; }
     const allParts = [currentUser.id, ...newParticipants.filter(id => id !== currentUser.id)];
     const meetingData = {
       description: newDesc,
@@ -152,7 +152,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
       setNewDay(1); setNewDayOfMonth(1); setNewDuration(60);
       setNewStartDate(new Date().toISOString().slice(0,10)); setNewEndDate(''); setNewIndefinite(true);
       setShowNew(false);
-    } catch (err) { alert('Chyba při ukládání: ' + err.message); } finally { setIsSaving(false); }
+    } catch (err) { toastError('Chyba při ukládání: ' + err.message); } finally { setIsSaving(false); }
   };
 
   const renderMeetingCard = (m) => {
