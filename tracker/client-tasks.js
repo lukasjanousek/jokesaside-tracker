@@ -69,14 +69,14 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     const sb = window.__supabase;
     if (!sb) return;
     const { error } = await sb.from('client_tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', task.id).select();
-    if (error) { alert('Chyba: ' + error.message); return; }
+    if (error) { toastError('Chyba: ' + error.message); return; }
     // Log
     await sb.from('client_task_logs').insert([{ task_id: task.id, user_type: 'admin', user_id: currentUser.id, action: 'status_changed', old_values: { status: task.status }, new_values: { status: newStatus } }]);
     setClientTasks(clientTasks.map(t => t.id === task.id ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t));
   
     } catch (err) {
       console.error('changeStatus error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -88,7 +88,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     try {
     if (!completeDialog) return;
     const totalMins = (parseInt(completeDuration.hours) || 0) * 60 + (parseInt(completeDuration.mins) || 0);
-    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
+    if (totalMins < 15) { toastSuccess('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
 
     const sb = window.__supabase;
     if (!sb) return;
@@ -106,7 +106,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       is_manual: true,
     }]).select();
 
-    if (entryError) { alert('Chyba pÅi vytvÃ¡ÅenÃ­ zÃ¡znamu: ' + entryError.message); return; }
+    if (entryError) { toastError('Chyba pÅi vytvÃ¡ÅenÃ­ zÃ¡znamu: ' + entryError.message); return; }
 
     // Update task
     const { error: taskError } = await sb.from('client_tasks').update({
@@ -117,7 +117,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
       updated_at: new Date().toISOString(),
     }).eq('id', completeDialog.id).select();
 
-    if (taskError) { alert('Chyba: ' + taskError.message); return; }
+    if (taskError) { toastError('Chyba: ' + taskError.message); return; }
 
     // Log
     await sb.from('client_task_logs').insert([{
@@ -132,7 +132,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   
     } catch (err) {
       console.error('handleComplete error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -145,7 +145,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     const sb = window.__supabase;
     if (!sb) return;
     const { error } = await sb.from('client_tasks').update({ assigned_user_id: userId, assigned_by: currentUser.id, updated_at: new Date().toISOString() }).eq('id', taskId).select();
-    if (error) { alert('Chyba: ' + error.message); return; }
+    if (error) { toastError('Chyba: ' + error.message); return; }
     await sb.from('client_task_logs').insert([{ task_id: taskId, user_type: 'admin', user_id: currentUser.id, action: 'assigned', new_values: { assigned_user_id: userId } }]);
     setClientTasks(clientTasks.map(t => t.id === taskId ? { ...t, assigned_user_id: userId, assigned_by: currentUser.id } : t));
     // Send notification to assigned user
@@ -158,7 +158,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
   
     } catch (err) {
       console.error('handleAssign error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
@@ -172,13 +172,13 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     const sb = window.__supabase;
     if (!sb) return;
     const { error } = await sb.from('client_tasks').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by_type: 'admin', deleted_by: currentUser.id }).eq('id', task.id).select();
-    if (error) { alert('Chyba: ' + error.message); return; }
+    if (error) { toastError('Chyba: ' + error.message); return; }
     await sb.from('client_task_logs').insert([{ task_id: task.id, user_type: 'admin', user_id: currentUser.id, action: 'deleted', old_values: task }]);
     setClientTasks(clientTasks.filter(t => t.id !== task.id));
   
     } catch (err) {
       console.error('handleDelete error:', err);
-      alert('Chyba: ' + (err && err.message || String(err)));
+      toastError('Chyba: ' + (err && err.message || String(err)));
     } finally {
       setIsSaving(false);
     }};
