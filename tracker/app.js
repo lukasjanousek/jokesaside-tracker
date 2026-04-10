@@ -435,10 +435,11 @@ function App() {
     if (!supabase) return;
     try {
       const updatesWithTime = { ...updates, updated_at: new Date().toISOString() };
-      const { error } = await supabase
+      const { data: updData, error } = await supabase
         .from('time_entries')
         .update(updatesWithTime)
-        .eq('id', entryId);
+        .eq('id', entryId)
+        .select();
       if (error) throw error;
       setEntries(prev => prev.map(e => e.id === entryId ? { ...e, ...updatesWithTime } : e));
     } catch (err) {
@@ -472,7 +473,7 @@ function App() {
   const handleNotificationResponse = async (notif, accept) => {
     if (!supabase) return;
     const newStatus = accept ? 'accepted' : 'declined';
-    const { error } = await supabase.from('task_notifications').update({ status: newStatus, responded_at: new Date().toISOString() }).eq('id', notif.id);
+    const { data: notifData, error } = await supabase.from('task_notifications').update({ status: newStatus, responded_at: new Date().toISOString() }).eq('id', notif.id).select();
     if (error) { alert('Chyba: ' + error.message); return; }
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, status: newStatus, responded_at: new Date().toISOString() } : n));
 
@@ -483,7 +484,7 @@ function App() {
         const confirmed = [...(meeting.confirmedParticipantIds || meeting.confirmed_participant_ids || [])];
         if (!confirmed.includes(notif.user_id)) {
           confirmed.push(notif.user_id);
-          const { error: updateErr } = await supabase.from('recurring_meetings').update({ confirmed_participant_ids: confirmed }).eq('id', notif.reference_id);
+          const { data: meetData, error: updateErr } = await supabase.from('recurring_meetings').update({ confirmed_participant_ids: confirmed }).eq('id', notif.reference_id).select();
           if (!updateErr) {
             setRecurringMeetings(prev => prev.map(m => m.id === notif.reference_id ? { ...m, confirmedParticipantIds: confirmed, confirmed_participant_ids: confirmed } : m));
           }
@@ -494,7 +495,8 @@ function App() {
     if (accept && notif.reference_type === 'client_task') {
       const task = clientTasks.find(t => t.id === notif.reference_id);
       if (task && task.status === 'zadano') {
-        await supabase.from('client_tasks').update({ status: 'pracuje_se', updated_at: new Date().toISOString() }).eq('id', notif.reference_id);
+        const { error: taskErr } = await supabase.from('client_tasks').update({ status: 'pracuje_se', updated_at: new Date().toISOString() }).eq('id', notif.reference_id).select();
+        if (taskErr) console.error('client_tasks update failed:', taskErr);
         setClientTasks(prev => prev.map(t => t.id === notif.reference_id ? { ...t, status: 'pracuje_se' } : t));
       }
     }
