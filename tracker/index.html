@@ -217,7 +217,7 @@ button { cursor: pointer; border: none; background: none; }
     }
     return r;
   }
-  Promise.all(files.map(f => fetch(base + f).then(r => r.text()).then(normalizeEncoding)))
+  Promise.all(files.map(f => fetch(base + f + '?v=' + Date.now()).then(r => r.text()).then(normalizeEncoding)))
     .then(sources => {
       const combined = sources.join('\n;\n');
       const transformed = Babel.transform(combined, { presets: ['react'] }).code;
