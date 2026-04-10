@@ -17,7 +17,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
         manager_id: userData.manager_id || null
       };
       if (isAdmin) updateData.is_admin = userData.is_admin;
-      await window.__supabase.from('profiles').update(updateData).eq('id', userData.id);
+      await window.__supabase.from('profiles').update(updateData).eq('id', userData.id).select();
     }
     setUsers(prev => prev.map(u => u.id === userData.id ? {...u, ...userData} : u));
     if (userData.id === currentUser?.id) {
@@ -45,7 +45,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       color: company.color || '#6366f1', is_active: company.is_active !== false
     };
     if (company.id) {
-      await sb.from('companies').update(compData).eq('id', company.id);
+      await sb.from('companies').update(compData).eq('id', company.id).select();
       setCompanies(prev => prev.map(c => c.id === company.id ? {...c, ...compData} : c));
     } else {
       const { data: inserted, error } = await sb.from('companies').insert([compData]).select();
@@ -62,7 +62,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
 
     if (scheme.id) {
       // Update existing
-      await sb.from('discount_schemes').update({ name: scheme.name, no_discount: scheme.no_discount }).eq('id', scheme.id);
+      await sb.from('discount_schemes').update({ name: scheme.name, no_discount: scheme.no_discount }).eq('id', scheme.id).select();
       // Replace companies
       await sb.from('discount_scheme_companies').delete().eq('scheme_id', scheme.id);
       if (scheme.companyIds.length > 0) {
@@ -220,7 +220,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                       try {
                         const sb = window.__supabase;
                         if (sb) {
-                          const { error } = await sb.from('companies').update({is_active: false}).eq('id', c.id);
+                          const { error } = await sb.from('companies').update({is_active: false}).eq('id', c.id).select();
                           if (error) throw error;
                         }
                         setCompanies(companies.filter(co => co.id !== c.id));
@@ -562,14 +562,14 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                           <button className="btn btn-primary btn-sm" onClick={async () => {
                             const sb = window.__supabase;
                             if (!sb) return;
-                            await sb.from('profiles').update({is_approved: true}).eq('id', u.id);
+                            await sb.from('profiles').update({is_approved: true}).eq('id', u.id).select();
                             setUsers(prev => prev.map(x => x.id === u.id ? {...x, is_approved: true} : x));
                           }}>Schvalit</button>
                           <button className="btn btn-outline btn-sm" style={{color:'var(--danger)'}} onClick={async () => {
                             if (!confirm('Opravdu chcete zamítnout uzivatele ' + u.name + '?')) return;
                             const sb = window.__supabase;
                             if (!sb) return;
-                            await sb.from('profiles').update({is_active: false}).eq('id', u.id);
+                            await sb.from('profiles').update({is_active: false}).eq('id', u.id).select();
                             setUsers(prev => prev.filter(x => x.id !== u.id));
                           }}>Zamitnout</button>
                         </td>
