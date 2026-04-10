@@ -26,13 +26,20 @@ function App() {
   const [authError, setAuthError] = useState('');
   const [pendingApproval, setPendingApproval] = useState(false);
 
+  // Guard against concurrent loadUserProfile calls
+  const loadingProfileRef = useRef(false);
+
   // Check session on mount
   useEffect(() => {
     if (!supabase) return;
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await loadUserProfile(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await loadUserProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('checkSession error:', err);
       }
     };
     checkSession();
@@ -63,25 +70,42 @@ function App() {
 
   const loadUserProfile = async (userId) => {
     if (!supabase) return;
+    if (loadingProfileRef.current) {
+      console.warn('loadUserProfile already in progress, skipping');
+      return;
+    }
+    loadingProfileRef.current = true;
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (profile) {
-        if (!profile.is_approved) {
-          setCurrentUser(profile);
-          setPendingApproval(true);
-          return;
-        }
-        setCurrentUser(profile);
-        setIsLoggedIn(true);
-        await loadAllData();
+      if (profileError) {
+        console.error('Profile query error:', profileError);
+        setAuthError('Nepoda\u0159ilo se na\u010d\u00edst profil u\u017eivatele.');
+        return;
       }
+
+      if (!profile) {
+        setAuthError('Profil u\u017eivatele nebyl nalezen.');
+        return;
+      }
+
+      if (!profile.is_approved) {
+        setCurrentUser(profile);
+        setPendingApproval(true);
+        return;
+      }
+      setCurrentUser(profile);
+      setIsLoggedIn(true);
+      await loadAllData();
     } catch (err) {
       console.error('Error loading profile:', err);
+      setAuthError('Chyba p\u0159i na\u010d\u00edt\u00e1n\u00ed profilu: ' + (err.message || ''));
+    } finally {
+      loadingProfileRef.current = false;
     }
   };
 
@@ -192,12 +216,16 @@ function App() {
 
   const handleLogin = async (email, password) => {
     if (!supabase) {
-      setAuthError('Supabase nenÃ­ nakonfigurovÃ¡n');
+      setAuthError('Supabase není nakonfigurován');
       return;
     }
     try {
       setLoading(true);
       setAuthError('');
+      // Clear any stale session to prevent race conditions
+      await supabase.auth.signOut().catch(() => {});
+      loadingProfileRef.current = false;
+
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -207,7 +235,8 @@ function App() {
         await loadUserProfile(authData.user.id);
       }
     } catch (err) {
-      setAuthError(err.message || 'Chyba pÅi pÅihlÃ¡Å¡enÃ­');
+      console.error('Login error:', err);
+      setAuthError(err.message || 'Chyba při přihlášení');
     } finally {
       setLoading(false);
     }
