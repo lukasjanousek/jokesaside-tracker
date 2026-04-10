@@ -41,7 +41,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
   const handleManualAdd = async () => {
     if (quickCompanies.length === 0 || !quickDesc) return;
     const totalMins = (parseInt(manualHours)||0)*60 + (parseInt(manualMins)||0);
-    if (totalMins < 15) { toastSuccess('Minim\u00e1ln\u00ed d\u00e9lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { toastError('Minim\u00e1ln\u00ed d\u00e9lka tasku je 15 minut'); return; }
     const participantIds = dashParticipants.length > 0 ? dashParticipants : [currentUser.id];
     setSaveStatus('saving');
     let allOk = true;
@@ -287,7 +287,7 @@ function Dashboard({ companies, users, entries, getCompanyBudget, onSelectCompan
                 if (meetingCompanies.length === 0) missing.push('Firmy');
                 if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
                 if (missing.length > 0) {
-                  toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', '));
+                  toastError('VyplÅte prosÃ­m: ' + missing.join(', '));
                   return;
                 }
                 const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
