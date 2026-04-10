@@ -54,7 +54,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
     try {
       const sb = window.__supabase;
       if (sb) {
-        const { error } = await sb.from('recurring_meetings').update(dbData).eq('id', editingId);
+        const { error } = await sb.from('recurring_meetings').update(dbData).eq('id', editingId).select();
         if (error) throw error;
       }
       setRecurringMeetings(recurringMeetings.map(m => m.id === editingId ? {
@@ -86,7 +86,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
   const deactivateMeeting = async (id) => {
     try {
       const sb = window.__supabase;
-      if (sb) await sb.from('recurring_meetings').update({ is_active: false }).eq('id', id);
+      if (sb) await sb.from('recurring_meetings').update({ is_active: false }).eq('id', id).select();
       setRecurringMeetings(recurringMeetings.map(m => m.id === id ? { ...m, isActive: false } : m));
     } catch (err) { alert('Chyba: ' + err.message); }
   };
@@ -94,7 +94,7 @@ function MeetingsPage({ companies, users, currentUser, recurringMeetings, setRec
   const reactivateMeeting = async (id) => {
     try {
       const sb = window.__supabase;
-      if (sb) await sb.from('recurring_meetings').update({ is_active: true }).eq('id', id);
+      if (sb) await sb.from('recurring_meetings').update({ is_active: true }).eq('id', id).select();
       setRecurringMeetings(recurringMeetings.map(m => m.id === id ? { ...m, isActive: true } : m));
     } catch (err) { alert('Chyba: ' + err.message); }
   };
