@@ -42,7 +42,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const handleAddManual = async () => {
     if (selCompanies.length === 0 || !desc) return;
     const totalMins = (parseInt(hours)||0)*60 + (parseInt(mins)||0);
-    if (totalMins < 15) { alert('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
+    if (totalMins < 15) { toastSuccess('MinimÃ¡lnÃ­ dÃ©lka tasku je 15 minut'); return; }
     const participantIds = taskParticipants.length > 0 ? taskParticipants : [currentUser.id];
     setSaveStatus('saving');
     let allOk = true;
@@ -58,7 +58,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
     } else {
       setSaveStatus('error');
       const errDetail = (window.__lastSaveError && window.__lastSaveError.message) || "Neznámá chyba";
-      alert("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
+      toastError("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
     }
     setTimeout(() => setSaveStatus(null), 2000);
   };
@@ -285,7 +285,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
               if (meetingCompanies.length === 0) missing.push('Firmy');
               if (!meetingStartDate) missing.push('Datum zaÄÃ¡tku');
               if (missing.length > 0) {
-                alert('VyplÅte prosÃ­m: ' + missing.join(', '));
+                toastSuccess('VyplÅte prosÃ­m: ' + missing.join(', '));
                 return;
               }
               const allParticipants = [currentUser.id, ...meetingParticipants.filter(id => id !== currentUser.id)];
@@ -314,7 +314,7 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
                     const newMeeting = { id: 'rm' + Date.now(), ...meetingData };
                     setRecurringMeetings([...recurringMeetings, newMeeting]);
                   }
-                } catch(err) { console.error('Error saving meeting:', err); alert('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
+                } catch(err) { console.error('Error saving meeting:', err); toastError('Chyba pÅi uklÃ¡dÃ¡nÃ­:' + err.message); }
               })();
 
               // Send email notification
