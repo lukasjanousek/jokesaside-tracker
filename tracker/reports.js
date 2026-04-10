@@ -783,14 +783,16 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
                                         <span style={{flex:1,fontSize:13,fontWeight:500}}>{arUser?.name || 'Neznámý'}</span>
                                         <button className="btn btn-sm" style={{background:'var(--success)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
                                           if (!window.__supabase) return;
-                                          await window.__supabase.from('approval_requests').update({status:'approved',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id}).eq('id',ar.id);
+                                          const { error: approveErr } = await window.__supabase.from('approval_requests').update({status:'approved',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id}).eq('id',ar.id).select();
+                                          if (approveErr) console.error('Approval update failed:', approveErr);
                                           setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'approved',reviewer_id:currentUser.id} : a));
                                         }}>Schválit</button>
                                         <button className="btn btn-sm" style={{background:'var(--danger)',color:'white',fontSize:11,padding:'4px 10px',border:'none',borderRadius:6,cursor:'pointer'}} onClick={async () => {
                                           const note = prompt('Důvod zamítnutí:');
                                           if (note === null) return;
                                           if (!window.__supabase) return;
-                                          await window.__supabase.from('approval_requests').update({status:'rejected',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id,note}).eq('id',ar.id);
+                                          const { error: rejectErr } = await window.__supabase.from('approval_requests').update({status:'rejected',reviewed_at:new Date().toISOString(),reviewer_id:currentUser.id,note}).eq('id',ar.id).select();
+                                          if (rejectErr) console.error('Rejection update failed:', rejectErr);
                                           setApprovalRequests(prev => prev.map(a => a.id===ar.id ? {...a,status:'rejected',reviewer_id:currentUser.id,note} : a));
                                         }}>Zamítnout</button>
                                       </div>
