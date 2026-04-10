@@ -402,6 +402,7 @@ function App() {
   };
 
   const deleteEntry = async (entryId) => {
+    if (!confirm('Opravdu chcete smazat tento záznam?')) return;
     if (!supabase) return;
     try {
       const entry = entries.find(e => e.id === entryId);
