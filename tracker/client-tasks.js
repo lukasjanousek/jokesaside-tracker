@@ -88,7 +88,7 @@ function ClientTasksPage({ clientTasks, setClientTasks, clientProfiles, companie
     try {
     if (!completeDialog) return;
     const totalMins = (parseInt(completeDuration.hours) || 0) * 60 + (parseInt(completeDuration.mins) || 0);
-    if (totalMins < 15) { toastSuccess('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
+    if (totalMins < 15) { toastError('MinimÃ¡lnÃ­ dÃ©lka je 15 minut'); return; }
 
     const sb = window.__supabase;
     if (!sb) return;
