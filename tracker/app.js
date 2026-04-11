@@ -35,53 +35,52 @@ function App() {
 
     let isMounted = true;
 
+    // Clear expired tokens from localStorage BEFORE Supabase tries to use them
+    // This prevents Supabase from hanging on stale token refresh
+    try {
+      const tokenKey = 'sb-zsuqgsqgcxbiueupjaoe-auth-token';
+      const raw = localStorage.getItem(tokenKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const now = Math.floor(Date.now() / 1000);
+        if (parsed.expires_at && parsed.expires_at < now) {
+          console.warn('Clearing expired auth token from localStorage');
+          localStorage.removeItem(tokenKey);
+        }
+      }
+    } catch(e) { /* ignore parse errors */ }
+
     const initAuth = async () => {
       try {
-        // First check for existing session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('getSession error:', sessionError.message);
-          // Clear stale session on error
-          try { await supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
-          if (isMounted) setLoading(false);
-          return;
-        }
+        const sessionPromise = supabase.auth.getSession();
+        const result = await Promise.race([
+          sessionPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 5000))
+        ]);
 
+        const session = result.data?.session;
         if (session && session.user) {
-          // Verify the session is still valid by checking the user
-          const { data: { user }, error: userError } = await supabase.auth.getUser();
-          if (userError || !user) {
-            console.error('Stale session detected, clearing:', userError?.message);
-            try { await supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
-            if (isMounted) setLoading(false);
-            return;
-          }
-          // Session is valid, load profile
-          await loadUserProfile(user.id);
+          await loadUserProfile(session.user.id);
         } else {
-          // No session, show login page
           if (isMounted) setLoading(false);
         }
       } catch (err) {
-        console.error('Auth init error:', err);
+        console.error('Auth init error:', err.message);
+        // On any error/timeout, clear auth and show login
+        try { localStorage.removeItem('sb-zsuqgsqgcxbiueupjaoe-auth-token'); } catch(e) {}
         if (isMounted) setLoading(false);
       }
     };
 
     initAuth();
 
-    // Listen for auth changes (login/logout after mount)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && session.user) {
         loadUserProfile(session.user.id);
       }
     });
 
-    // Safety timeout
-    const timeout = setTimeout(() => { if (isMounted) setLoading(false); }, 8000);
-
-    return () => { isMounted = false; subscription.unsubscribe(); clearTimeout(timeout); };
+    return () => { isMounted = false; subscription.unsubscribe(); };
   }, []);
 
   const handleGoogleLogin = async () => {
