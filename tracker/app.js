@@ -33,32 +33,55 @@ function App() {
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
 
-    let handled = false;
+    let isMounted = true;
 
-    // Check existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && session.user) {
-        loadUserProfile(session.user.id);
-      } else {
-        if (!handled) setLoading(false);
+    const initAuth = async () => {
+      try {
+        // First check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('getSession error:', sessionError.message);
+          // Clear stale session on error
+          try { await supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        if (session && session.user) {
+          // Verify the session is still valid by checking the user
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError || !user) {
+            console.error('Stale session detected, clearing:', userError?.message);
+            try { await supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
+            if (isMounted) setLoading(false);
+            return;
+          }
+          // Session is valid, load profile
+          await loadUserProfile(user.id);
+        } else {
+          // No session, show login page
+          if (isMounted) setLoading(false);
+        }
+      } catch (err) {
+        console.error('Auth init error:', err);
+        if (isMounted) setLoading(false);
       }
-      handled = true;
-    }).catch(() => { setLoading(false); handled = true; });
+    };
 
-    // Listen for auth changes (login/logout)
+    initAuth();
+
+    // Listen for auth changes (login/logout after mount)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && session.user) {
-        handled = true;
         loadUserProfile(session.user.id);
       }
-      // Note: SIGNED_OUT is handled by the logout button directly
-      // We don't reset state here to avoid race conditions with handleLogin's signOut
     });
 
-    // Safety timeout - if nothing happened after 5s, stop loading
-    const timeout = setTimeout(() => { if (!handled) setLoading(false); }, 5000);
+    // Safety timeout
+    const timeout = setTimeout(() => { if (isMounted) setLoading(false); }, 8000);
 
-    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
+    return () => { isMounted = false; subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   const handleGoogleLogin = async () => {
