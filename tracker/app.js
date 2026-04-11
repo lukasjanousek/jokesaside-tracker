@@ -33,33 +33,32 @@ function App() {
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
 
-    // 1) Check existing session
+    let handled = false;
+
+    // Check existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && session.user) {
         loadUserProfile(session.user.id);
       } else {
-        setLoading(false);
+        if (!handled) setLoading(false);
       }
-    }).catch(() => { setLoading(false); });
+      handled = true;
+    }).catch(() => { setLoading(false); handled = true; });
 
-    // 2) Listen for auth state changes
+    // Listen for auth changes (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && session.user) {
+        handled = true;
         loadUserProfile(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setCurrentUser(null);
-        setLoading(false);
-        setPendingApproval(false);
-      } else if (event === 'TOKEN_REFRESHED') {
-        // Token refreshed, no action needed
-      } else if (event === 'INITIAL_SESSION') {
-        // Already handled by getSession above
-        if (!session) setLoading(false);
       }
+      // Note: SIGNED_OUT is handled by the logout button directly
+      // We don't reset state here to avoid race conditions with handleLogin's signOut
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout - if nothing happened after 5s, stop loading
+    const timeout = setTimeout(() => { if (!handled) setLoading(false); }, 5000);
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   const handleGoogleLogin = async () => {
