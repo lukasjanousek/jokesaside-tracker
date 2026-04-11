@@ -31,24 +31,34 @@ function App() {
 
   // Check session on mount
   useEffect(() => {
-    if (!supabase) return;
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          await loadUserProfile(session.user.id);
-        }
-      } catch (err) {
-        console.error('checkSession error:', err);
-      }
-    };
-    checkSession();
+    if (!supabase) { setLoading(false); return; }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        await loadUserProfile(session.user.id);
+    // 1) Check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && session.user) {
+        loadUserProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    }).catch(() => { setLoading(false); });
+
+    // 2) Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session && session.user) {
+        loadUserProfile(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setCurrentUser(null);
+        setLoading(false);
+        setPendingApproval(false);
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token refreshed, no action needed
+      } else if (event === 'INITIAL_SESSION') {
+        // Already handled by getSession above
+        if (!session) setLoading(false);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -106,6 +116,7 @@ function App() {
       setAuthError('Chyba p\u0159i na\u010d\u00edt\u00e1n\u00ed profilu: ' + (err.message || ''));
     } finally {
       loadingProfileRef.current = false;
+      setLoading(false);
     }
   };
 
