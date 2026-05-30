@@ -12,6 +12,20 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [descInputRef, setDescInputRef] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
 
+  // Rozsah historie v "Moje záznamy" (volitelný, ukládá se)
+  const [historyRange, setHistoryRange] = useState(() => {
+    try { return localStorage.getItem('tracker_history_range') || '30d'; } catch { return '30d'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('tracker_history_range', historyRange); } catch {}
+  }, [historyRange]);
+
+  // Měsíc pro generování timesheetu (výchozí aktuální)
+  const [timesheetMonth, setTimesheetMonth] = useState(() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+  });
+
   // Meeting form state
   const [trackMode, setTrackMode] = useState('task');
   const [meetingDesc, setMeetingDesc] = useState('');
@@ -26,7 +40,32 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
   const [meetingIndefinite, setMeetingIndefinite] = useState(true);
   const [editingMeeting, setEditingMeeting] = useState(null);
 
-  const todayEntries = entries.filter(e => e.user_id === currentUser.id).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,30);
+  // Okno historie podle zvoleného rozsahu
+  const fmtLocal = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  const historyWindow = useMemo(() => {
+    const now = new Date();
+    const today = fmtLocal(now);
+    if (historyRange === 'all') return { from: null, to: null };
+    if (historyRange === 'month') {
+      return { from: fmtLocal(new Date(now.getFullYear(), now.getMonth(), 1)), to: today };
+    }
+    if (historyRange === 'prevmonth') {
+      return {
+        from: fmtLocal(new Date(now.getFullYear(), now.getMonth()-1, 1)),
+        to: fmtLocal(new Date(now.getFullYear(), now.getMonth(), 0)),
+      };
+    }
+    const days = parseInt(historyRange) || 30;
+    const d = new Date(now); d.setDate(now.getDate() - (days - 1));
+    return { from: fmtLocal(d), to: today };
+  }, [historyRange]);
+
+  const visibleEntries = entries
+    .filter(e => e.user_id === currentUser.id)
+    .filter(e => (!historyWindow.from || e.date >= historyWindow.from) && (!historyWindow.to || e.date <= historyWindow.to))
+    .sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''))
+    .slice(0, 1000);
+  const visibleTotalMins = visibleEntries.reduce((s,e) => s + e.duration_min, 0);
 
   // Get unique past descriptions for autocomplete
   const uniqueDescriptions = useMemo(() => {
@@ -61,6 +100,80 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
       toastError("Chyba při ukládání: " + errDetail + "\n\nZkuste stránku obnovit (F5) a zkusit znovu. Pokud problém přetrvává, nahlaste tento text vývojáři.");
     }
     setTimeout(() => setSaveStatus(null), 2000);
+  };
+
+  // Měsíční timesheet (PDF) – moje záznamy po dnech, náhrada za excelové timesheety
+  const generateTimesheetPDF = () => {
+    if (!window.jspdf || !window.__registerLatoFont) { toastError('PDF se nenačetlo, obnovte stránku (Ctrl+R)'); return; }
+    const [y, m] = timesheetMonth.split('-').map(Number);
+    const from = `${y}-${String(m).padStart(2,'0')}-01`;
+    const to = `${y}-${String(m).padStart(2,'0')}-${String(new Date(y, m, 0).getDate()).padStart(2,'0')}`;
+    const mine = entries
+      .filter(e => e.user_id === currentUser.id && e.date >= from && e.date <= to)
+      .sort((a,b) => a.date === b.date ? (a.created_at||'').localeCompare(b.created_at||'') : a.date.localeCompare(b.date));
+    if (mine.length === 0) { toastError('V tomto měsíci nemáte žádné záznamy'); return; }
+
+    const months = ['leden','únor','březen','duben','květen','červen','červenec','srpen','září','říjen','listopad','prosinec'];
+    const monthLabel = months[m-1] + ' ' + y;
+    const totalMins = mine.reduce((s,e) => s + e.duration_min, 0);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    window.__registerLatoFont(doc);
+    doc.setFont('Lato','bold'); doc.setFontSize(16); doc.text('Timesheet', 14, 16);
+    doc.setFont('Lato','normal'); doc.setFontSize(10);
+    doc.text((currentUser.name||'') + (currentUser.position ? ' — ' + currentUser.position : ''), 14, 23);
+    doc.text('Měsíc: ' + monthLabel, 14, 28.5);
+    doc.setFont('Lato','bold');
+    doc.text('Celkem: ' + formatHours(totalMins), 196, 23, { align:'right' });
+    doc.setFont('Lato','normal');
+
+    // Tělo tabulky: záznamy seskupené po dnech s denním součtem
+    const grouped = {};
+    mine.forEach(e => { (grouped[e.date] = grouped[e.date] || []).push(e); });
+    const body = [];
+    const subtotalRows = [];
+    Object.keys(grouped).sort().forEach(date => {
+      const dayEntries = grouped[date];
+      const dLabel = new Date(date + 'T12:00:00').toLocaleDateString('cs-CZ', { weekday:'short', day:'numeric', month:'numeric' });
+      dayEntries.forEach((e, i) => {
+        body.push([
+          i === 0 ? dLabel : '',
+          companies.find(c => c.id === e.company_id)?.name || '',
+          e.description || '',
+          formatHours(e.duration_min)
+        ]);
+      });
+      const dayMins = dayEntries.reduce((s,e) => s + e.duration_min, 0);
+      subtotalRows.push(body.length);
+      body.push(['', '', 'Denní součet', formatHours(dayMins)]);
+    });
+
+    doc.autoTable({
+      startY: 34,
+      head: [['Datum','Firma','Popis','Doba']],
+      body,
+      styles: { font:'Lato', fontSize:8, cellPadding:1.8, valign:'top' },
+      headStyles: { font:'Lato', fontStyle:'bold', fillColor:[79,70,229], textColor:255 },
+      columnStyles: { 0:{cellWidth:26}, 1:{cellWidth:34}, 2:{cellWidth:'auto'}, 3:{cellWidth:20, halign:'right'} },
+      didParseCell: (d) => {
+        if (d.section === 'body' && subtotalRows.includes(d.row.index)) {
+          d.cell.styles.fontStyle = 'bold';
+          d.cell.styles.fillColor = [243,243,250];
+          if (d.column.index === 2) d.cell.styles.halign = 'right';
+        }
+      }
+    });
+
+    const endY = (doc.lastAutoTable && doc.lastAutoTable.finalY) || 34;
+    doc.setFont('Lato','bold'); doc.setFontSize(11); doc.setTextColor(79,70,229);
+    doc.text('Celkem za měsíc: ' + formatHours(totalMins), 196, endY + 10, { align:'right' });
+    doc.setFont('Lato','normal'); doc.setFontSize(7); doc.setTextColor(120,120,120);
+    doc.text('Vygenerováno ' + new Date().toLocaleDateString('cs-CZ') + ' · Jokes Aside Tracker', 14, endY + 10);
+
+    const safeName = (currentUser.name || 'user').replace(/\s+/g,'_');
+    doc.save(`timesheet_${safeName}_${timesheetMonth}.pdf`);
+    toastSuccess('Timesheet stažen');
   };
 
   return (
@@ -357,12 +470,40 @@ function TrackPage({ companies, currentUser, entries, users, timerRunning, timer
         </div>
       )}
 
+      {/* Měsíční timesheet (PDF) */}
+      <div className="card" style={{marginBottom:16,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+        <span style={{fontSize:13,fontWeight:600,color:'var(--text-secondary)'}}>Měsíční timesheet</span>
+        <input className="input" type="month" value={timesheetMonth} onChange={e=>setTimesheetMonth(e.target.value)} style={{width:'auto',flex:'0 0 auto',fontSize:13}} />
+        <button className="btn btn-outline btn-sm" onClick={generateTimesheetPDF} style={{marginLeft:'auto'}}>
+          <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.download}</span> Stáhnout PDF
+        </button>
+      </div>
+
       {/* Recent entries grouped by date with daily totals */}
-      <div className="section-title">Moje zÃ¡znamy</div>
+      <div className="section-title" style={{marginBottom:8}}>
+        <span>Moje záznamy</span>
+        <span style={{fontSize:13,fontWeight:700,color:'var(--primary)'}}>Celkem: {formatHours(visibleTotalMins)}</span>
+      </div>
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
+        {[
+          {k:'7d',label:'7 dní'},
+          {k:'30d',label:'30 dní'},
+          {k:'month',label:'Tento měsíc'},
+          {k:'prevmonth',label:'Minulý měsíc'},
+          {k:'all',label:'Vše'},
+        ].map(o => (
+          <button key={o.k} className={`btn btn-sm ${historyRange===o.k?'btn-primary':'btn-outline'}`} onClick={()=>setHistoryRange(o.k)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
       <div className="task-list">
+        {visibleEntries.length === 0 && (
+          <div style={{fontSize:13,color:'var(--text-secondary)',padding:'8px 0'}}>Žádné záznamy v tomto období.</div>
+        )}
         {(() => {
           const grouped = {};
-          todayEntries.forEach(e => {
+          visibleEntries.forEach(e => {
             if (!grouped[e.date]) grouped[e.date] = [];
             grouped[e.date].push(e);
           });
