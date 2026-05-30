@@ -39,6 +39,7 @@ CREATE TABLE public.companies (
   ico TEXT,                  -- IČ
   dic TEXT,                  -- DIČ
   is_vat_payer BOOLEAN DEFAULT FALSE,  -- Plátce DPH?
+  hourly_rate INTEGER,       -- Sazba per klient (override); NULL = účtuje se osobní sazbou člověka
   -- Display
   color TEXT DEFAULT '#6366f1',
   is_active BOOLEAN DEFAULT TRUE,

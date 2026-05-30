@@ -70,15 +70,28 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     return refCredit > 0 ? refPayment / refCredit : 1;
   };
 
+  // Sazba per klient (override) s fallbackem na osobní sazbu člověka
+  const getEffectiveRate = (companyId, user) => {
+    const c = companies.find(c => c.id === companyId);
+    if (c && c.hourly_rate) return c.hourly_rate; // klientská sazba má přednost
+    return user?.hourly_rate || 0;                 // jinak osobní sazba
+  };
+  const hasClientRate = (companyId) => {
+    const c = companies.find(c => c.id === companyId);
+    return !!(c && c.hourly_rate);
+  };
+  // U klienta s vlastní sazbou je sazba finální → slevy se neaplikují
+  const effectiveDiscountRatio = (companyId) => hasClientRate(companyId) ? 1 : getDiscountRatio(companyId);
+
   const totalMins = filtered.reduce((s,e) => s+e.duration_min, 0);
   let totalCzk = 0;
   let totalDiscountedCzk = 0;
   filtered.forEach(e => {
     const u = users.find(u=>u.id===e.user_id);
     if(u) {
-      const amt = (e.duration_min/60)*u.hourly_rate;
+      const amt = (e.duration_min/60)*getEffectiveRate(e.company_id, u);
       totalCzk += amt;
-      totalDiscountedCzk += amt * getDiscountRatio(e.company_id);
+      totalDiscountedCzk += amt * effectiveDiscountRatio(e.company_id);
     }
   });
   const uniqueCompanies = [...new Set(filtered.map(e=>e.company_id))].length;
@@ -91,9 +104,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     byCompany[e.company_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
     if (u) {
-      const amt = (e.duration_min/60)*u.hourly_rate;
+      const amt = (e.duration_min/60)*getEffectiveRate(e.company_id, u);
       byCompany[e.company_id].czk += amt;
-      byCompany[e.company_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+      byCompany[e.company_id].discountedCzk += amt * effectiveDiscountRatio(e.company_id);
     }
   });
 
@@ -104,9 +117,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     byUser[e.user_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
     if (u) {
-      const amt = (e.duration_min/60)*u.hourly_rate;
+      const amt = (e.duration_min/60)*getEffectiveRate(e.company_id, u);
       byUser[e.user_id].czk += amt;
-      byUser[e.user_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+      byUser[e.user_id].discountedCzk += amt * effectiveDiscountRatio(e.company_id);
     }
   });
 
@@ -119,9 +132,9 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
     invoiceData[key][e.user_id].mins += e.duration_min;
     const u = users.find(u=>u.id===e.user_id);
     if (u) {
-      const amt = (e.duration_min/60)*u.hourly_rate;
+      const amt = (e.duration_min/60)*getEffectiveRate(e.company_id, u);
       invoiceData[key][e.user_id].czk += amt;
-      invoiceData[key][e.user_id].discountedCzk += amt * getDiscountRatio(e.company_id);
+      invoiceData[key][e.user_id].discountedCzk += amt * effectiveDiscountRatio(e.company_id);
     }
     invoiceData[key][e.user_id].entries.push(e);
   });
@@ -285,7 +298,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
 
         // User header
         doc.setFont('Lato', 'bold'); doc.setFontSize(8); doc.setTextColor(...dark);
-        doc.text(user?.name + ' (' + (user?.hourly_rate || 0).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' Kč/h)', ml + 1, yRef.v + 3);
+        doc.text(user?.name + ' (' + getEffectiveRate(compId, user).toLocaleString('cs-CZ').replace(/\u00A0/g, ' ') + ' Kč/h)', ml + 1, yRef.v + 3);
         doc.setFont('Lato', 'normal'); doc.setTextColor(...gray);
         doc.text(formatHours(data.mins) + ' | ' + fmtK(data.czk) + ' bez DPH', pw - mr - 1, yRef.v + 3, { align: 'right' });
         yRef.v += 6;
@@ -300,7 +313,7 @@ function ReportsPage({ companies, users, entries, billingLocks, addBillingLock, 
         const c1 = tw - c0 - c2 - c3 - c4 - c5; // popis = rest
 
         const tData = data.entries.sort((a,b)=>a.date.localeCompare(b.date)).map(e => {
-          const bez = (e.duration_min/60) * (user?.hourly_rate || 0);
+          const bez = (e.duration_min/60) * getEffectiveRate(compId, user);
           const dph = bez * VAT_RATE;
           return [
             formatDate(e.date),

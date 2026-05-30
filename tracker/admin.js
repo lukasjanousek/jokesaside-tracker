@@ -55,7 +55,8 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
     const compData = {
       name: company.name, legal_name: company.legal_name, address: company.address,
       ico: company.ico, dic: company.dic, is_vat_payer: company.is_vat_payer,
-      color: company.color || '#6366f1', is_active: company.is_active !== false
+      color: company.color || '#6366f1', is_active: company.is_active !== false,
+      hourly_rate: (company.hourly_rate === '' || company.hourly_rate == null) ? null : (parseInt(company.hourly_rate) || null)
     };
     if (company.id) {
       await sb.from('companies').update(compData).eq('id', company.id).select();
@@ -203,7 +204,7 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
       {tab === 'companies' && (
         <div>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
-            <button className="btn btn-primary btn-sm" onClick={() => setEditCompany({id:'',name:'',legal_name:'',address:'',ico:'',dic:'',is_vat_payer:false,color:'#6366f1',is_active:true})}>
+            <button className="btn btn-primary btn-sm" onClick={() => setEditCompany({id:'',name:'',legal_name:'',address:'',ico:'',dic:'',is_vat_payer:false,color:'#6366f1',is_active:true,hourly_rate:null})}>
               <span style={{width:14,height:14,display:'inline-flex'}}>{Icons.plus}</span> PÅidat firmu
             </button>
           </div>
@@ -507,6 +508,11 @@ function AdminPage({ companies, setCompanies, users, setUsers, discountSchemes, 
                 <input type="checkbox" checked={editCompany.is_vat_payer||false} onChange={e=>setEditCompany({...editCompany, is_vat_payer:e.target.checked})} />
                 <span className="form-label" style={{margin:0}}>PlÃ¡tce DPH</span>
               </label>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Hodinová sazba klienta (Kč)</label>
+              <input className="input" type="number" min="0" placeholder="Nevyplněno = účtuje se osobní sazbou" value={editCompany.hourly_rate ?? ''} onChange={e=>setEditCompany({...editCompany, hourly_rate: e.target.value === '' ? null : (parseInt(e.target.value)||0)})} />
+              <div style={{fontSize:11,color:'var(--text-secondary)',marginTop:4}}>Když je vyplněno, všechny hodiny pro tuto firmu se účtují touto sazbou (bez ohledu na osobu). Prázdné = osobní sazby lidí.</div>
             </div>
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:16}}>
               <button className="btn btn-outline" onClick={()=>setEditCompany(null)}>ZruÅ¡it</button>
